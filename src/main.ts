@@ -1,4 +1,3 @@
-import "./styles.css";
 import { mountLabApp } from "./ui/app";
 
 const app = document.querySelector<HTMLElement>("#app");

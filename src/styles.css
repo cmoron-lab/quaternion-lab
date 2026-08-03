@@ -76,7 +76,7 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
 }
 
 .controls-panel, .lesson-panel { grid-column: 1; grid-row: 1; }
-.scene-shell { grid-column: 2; grid-row: 1; }
+.scene-shell { grid-column: 2; grid-row: 1; align-self: start; }
 
 .scene-shell, .controls-panel, .lesson-panel {
   border: 1px solid #2ca6b8;
@@ -135,7 +135,6 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
 .axis-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
 .axis-legend span::before { width: 0.7rem; height: 0.7rem; border: 1px solid #082733; content: ""; }
 .axis-legend__port::before { background: #d94b55; }
-.axis-legend__forward::before { background: #e9a23b; }
 .axis-legend__starboard::before { background: #218b68; }
 
 .controls-panel, .lesson-panel {
@@ -161,6 +160,7 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .control-message, .control-warning { color: #a32c38; font-weight: 700; }
 .control-note { color: #123d4a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 .control-note--explained { padding: 0.45rem 0.6rem; border-left: 3px solid #e9a23b; background: #fdf3e3; }
+.control-note--explained:empty { display: none; }
 
 .lesson-panel {
   min-height: 4rem;

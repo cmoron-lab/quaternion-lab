@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="icon" href="data:," />
+    <link rel="icon" href="/lotus.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="/src/styles.css" />
     <title>LOTUSim Quaternion Lab</title>
   </head>
   <body>
@@ -30,7 +31,7 @@
             <button class="scene-shell__reset" id="reset-camera" type="button">Réinitialiser la caméra</button>
           </div>
           <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau FLU dans le monde ENU"></div>
-          <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__forward">La pointe indique l'avant</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
+          <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
         </section>
 
         <aside id="sandbox" class="controls-panel" aria-label="Bac à sable de quaternions" hidden>
@@ -44,6 +45,7 @@
               <label for="qz">z<input id="qz" type="number" step="any" value="0.000000" /></label>
             </div>
             <p id="norm-indicator" class="control-note">‖q‖ = 1.000000</p>
+            <code id="quaternion-symbolic" class="control-note">[1, 0, 0, 0]</code>
           </fieldset>
           <p id="normalization-note" class="control-note control-note--explained" role="status" aria-live="polite"></p>
           <fieldset>
@@ -79,8 +81,8 @@
               <button data-preset="identity-enu" type="button">Quaternion identité</button>
               <button data-preset="roll-30" type="button">Roulis 30°</button>
               <button data-preset="pitch-90" type="button">Tangage 90°</button>
-              <button data-preset="xdyn-north" type="button">xdyn Nord</button>
-              <button data-preset="xdyn-east" type="button">xdyn Est</button>
+              <button data-preset="xdyn-north" type="button">xdyn cap 0° (Nord NED)</button>
+              <button data-preset="xdyn-east" type="button">xdyn cap +90° (Est NED)</button>
             </div>
           </fieldset>
           <p id="validation-message" class="control-message" role="status" aria-live="polite"></p>
