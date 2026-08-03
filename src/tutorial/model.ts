@@ -24,6 +24,8 @@ export const CHALLENGE_OPTIONS = [
   { id: "missing-body-swap", quaternion: [0, 1, 0, 0] },
   // Q_FLU_TO_FRD ⊗ q_NED_FRD ⊗ Q_NED_TO_ENU: the factors were reversed.
   { id: "reversed-order", quaternion: [0, 0, 0, 1] },
+  // xdyn [s,0,0,s] read as Three.js becomes domain [s,s,0,0]; the two-sided
+  // conversion gives [-0.5,-0.5,-0.5,-0.5] ≡ [0.5,0.5,0.5,0.5].
   { id: "scalar-last", quaternion: [0.5, 0.5, 0.5, 0.5] },
 ] as const satisfies readonly Readonly<{
   id: ChallengeOptionId;
