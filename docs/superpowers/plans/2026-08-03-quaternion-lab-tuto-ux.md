@@ -248,7 +248,7 @@ Then replace every screen object in `TUTORIAL_SCREENS` with the copy below. Keep
     tryIt:
       "Cliquez sur Rejouer et observez les deux repères : le grand repère du monde reste fixe pendant que le repère du bateau tourne avec lui. Repérez quels axes suivent le bateau et quels axes ne bougent pas.",
     summary:
-      "Vous venez de voir deux repères. Le repère monde ENU (East–North–Up : X vers l'est, Y vers le nord, Z vers le haut) est fixe. Le repère corps FLU (Forward–Left–Up : X vers l'avant, Y vers la gauche, Z vers le haut) est solidaire du bateau. L'orientation du bateau est la rotation qui fait passer du monde au corps — et un quaternion est l'outil qui décrit cette rotation avec quatre nombres liés.",
+      "Vous venez de voir deux repères. Le repère monde ENU (East–North–Up : X vers l'est, Y vers le nord, Z vers le haut) est fixe. Le repère corps FLU (Forward–Left–Up : X vers l'avant, Y vers la gauche, Z vers le haut) est solidaire du bateau. L'orientation du bateau est la rotation qui fait passer du repère corps au repère monde — et un quaternion est l'outil qui décrit cette rotation avec quatre nombres liés.",
     takeaway:
       "Orientation ≠ position : pendant toute la démonstration, le bateau n'a pas changé de place.",
     details: [

@@ -5,6 +5,7 @@ import {
   multiply,
   type EulerZYX,
   type Quaternion,
+  type Vec3,
 } from "../math/quaternion";
 import { LabScene } from "../scene/lab-scene";
 import { TUTORIAL_SCREENS, type TutorialScreen } from "../tutorial/content";
@@ -98,6 +99,7 @@ export function mountLabApp(root: HTMLElement): void {
   let snapshot = snapshotFromEnu([1, 0, 0, 0]);
   let tutorialState = startTutorial();
   let showNegative = false;
+  let lessonAxis: Vec3 = [0, 0, 1];
   let compositionSwapped = false;
   let comparisonPhase: "world" | "body" | "full" = "full";
   let challengeSelection: number | null = null;
@@ -240,8 +242,9 @@ export function mountLabApp(root: HTMLElement): void {
         const [w, x, y, z] = snapshot.enuFlu;
         const equivalent: Quaternion = showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu;
         const thetaDegrees = ((snapshot.axisAngle.angle * 180) / Math.PI).toFixed(1);
+        const displayedAxis = snapshot.axisAngle.angle > 1e-6 ? snapshot.axisAngle.axis : lessonAxis;
         return `<div class="lesson-demo equivalent-card">
-          <div><span>q courant · axe ${axisLabel(snapshot.axisAngle.axis)} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
+          <div><span>q courant · axe ${axisLabel(displayedAxis)} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
           <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
           <label class="range-control" for="lesson-theta">θ
             <input id="lesson-theta" type="range" min="0" max="180" step="0.1" value="${thetaDegrees}" />
@@ -334,7 +337,9 @@ export function mountLabApp(root: HTMLElement): void {
           ? `[data-phase="${focused.dataset.phase}"]`
           : focused.dataset.challengeIndex
             ? `[data-challenge-index="${focused.dataset.challengeIndex}"]`
-            : null
+            : focused.id
+              ? `#${focused.id}`
+              : null
       : null;
     lesson.hidden = tutorialState.mode === "sandbox";
     if (lesson.hidden) return;
@@ -392,8 +397,9 @@ export function mountLabApp(root: HTMLElement): void {
     });
     const thetaSlider = lesson.querySelector<HTMLInputElement>("#lesson-theta");
     thetaSlider?.addEventListener("input", () => {
+      if (snapshot.axisAngle.angle > 1e-6) lessonAxis = snapshot.axisAngle.axis;
       snapshot = snapshotFromEnu(
-        fromAxisAngle({ axis: snapshot.axisAngle.axis, angle: radians(Number(thetaSlider.value)) }),
+        fromAxisAngle({ axis: lessonAxis, angle: radians(Number(thetaSlider.value)) }),
       );
       scene.setOrientation(snapshot.enuFlu);
       scene.setRotationAxis(snapshot.axisAngle.axis);
