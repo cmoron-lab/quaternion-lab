@@ -11,29 +11,29 @@
       <header class="lab__header">
         <div>
           <p class="lab__eyebrow">LOTUSim · laboratoire d'attitude</p>
-          <h1>Repères et orientation</h1>
+          <h1>Comprendre les quaternions</h1>
         </div>
-        <p id="convention-badge" class="convention-badge">Scène fixe · bateau mobile</p>
+        <p id="convention-badge" class="convention-badge">Monde ENU · Corps FLU · xdyn NED/FRD</p>
         <nav class="lab__actions" aria-label="Navigation du laboratoire">
           <button id="sandbox-jump" type="button">Explorer librement</button>
           <button id="tutorial-resume" type="button" hidden>Reprendre le tutoriel</button>
           <button id="tutorial-restart" type="button" hidden>Recommencer depuis le début</button>
         </nav>
       </header>
-      <main id="lab" class="lab lab--guided-intro">
+      <main id="lab" class="lab">
         <section class="scene-shell" aria-labelledby="scene-title">
           <div class="scene-shell__toolbar">
             <div>
-              <h2 id="scene-title">Instrument d'orientation</h2>
-              <p id="scene-legend" class="scene-shell__legend">Repère fixe : Est · Nord · Haut<br />Repère du bateau : Avant · Gauche · Haut</p>
+              <h2 id="scene-title">Laboratoire de quaternions</h2>
+              <p id="scene-legend" class="scene-shell__legend">Monde ENU : X East · Y North · Z Up<br />Corps FLU : X Forward · Y Left · Z Up</p>
             </div>
             <button class="scene-shell__reset" id="reset-camera" type="button">Réinitialiser la caméra</button>
           </div>
-          <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau et repères d'orientation"></div>
+          <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau FLU dans le monde ENU"></div>
           <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__forward">La pointe indique l'avant</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
         </section>
 
-        <aside id="sandbox" class="controls-panel" aria-label="Bac à sable d'orientation" hidden>
+        <aside id="sandbox" class="controls-panel" aria-label="Bac à sable de quaternions" hidden>
           <h2 id="sandbox-title" tabindex="-1">Bac à sable</h2>
           <fieldset>
             <legend>Quaternion [w, x, y, z]</legend>
@@ -74,11 +74,11 @@
           <fieldset>
             <legend>Préréglages</legend>
             <div class="preset-grid">
-              <button data-preset="identity-enu" type="button">Orientation neutre</button>
+              <button data-preset="identity-enu" type="button">Quaternion identité</button>
               <button data-preset="roll-30" type="button">Roulis 30°</button>
               <button data-preset="pitch-90" type="button">Tangage 90°</button>
-              <button data-preset="xdyn-north" data-technical type="button" hidden>xdyn Nord</button>
-              <button data-preset="xdyn-east" data-technical type="button" hidden>xdyn Est</button>
+              <button data-preset="xdyn-north" type="button">xdyn Nord</button>
+              <button data-preset="xdyn-east" type="button">xdyn Est</button>
             </div>
           </fieldset>
           <p id="validation-message" class="control-message" role="status" aria-live="polite"></p>
@@ -86,7 +86,7 @@
           <p id="gimbal-warning" class="control-warning" role="status" aria-live="polite"></p>
         </aside>
 
-        <section id="lesson-panel" class="lesson-panel" aria-label="Tutoriel d'orientation"></section>
+        <section id="lesson-panel" class="lesson-panel" aria-label="Tutoriel quaternions"></section>
       </main>
     </div>
     <script type="module" src="/src/main.ts"></script>
