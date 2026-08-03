@@ -52,6 +52,18 @@ describe("scalar-first Hamilton quaternions", () => {
     expect(result.gimbalLocked).toBe(false);
   });
 
+  test("uses Z-Y'-X'' order for mixed Euler angles", () => {
+    closeTuple(
+      fromEulerZYX({ roll: Math.PI / 2, pitch: 0, yaw: Math.PI / 2 }),
+      [0.5, 0.5, 0.5, 0.5],
+    );
+    const result = toEulerZYX([0.5, 0.5, 0.5, 0.5]);
+    expect(result.roll).toBeCloseTo(Math.PI / 2, 10);
+    expect(result.pitch).toBeCloseTo(0, 10);
+    expect(result.yaw).toBeCloseTo(Math.PI / 2, 10);
+    expect(result.gimbalLocked).toBe(false);
+  });
+
   test("marks the ZYX singularity at 90 degrees of pitch", () => {
     const q = fromEulerZYX({ roll: 0, pitch: Math.PI / 2, yaw: 0 });
     expect(toEulerZYX(q).gimbalLocked).toBe(true);
