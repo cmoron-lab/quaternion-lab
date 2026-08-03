@@ -432,18 +432,18 @@ export function mountLabApp(root: HTMLElement): void {
     lesson.scrollIntoView({ block: "start" });
   });
   byId<HTMLButtonElement>(root, "tutorial-restart").addEventListener("click", () => {
-      tutorialState = restartTutorial(tutorialState);
-      showNegative = false;
-      compositionSwapped = false;
-      comparisonPhase = "full";
-      challengeSelection = null;
-      challengeFeedback = "";
-      cancelChallengeAnnouncement();
-      resetAnimation();
-      resetTeachingScene();
-      renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));
-      renderLesson();
-    });
+    tutorialState = restartTutorial(tutorialState);
+    showNegative = false;
+    compositionSwapped = false;
+    comparisonPhase = "full";
+    challengeSelection = null;
+    challengeFeedback = "";
+    cancelChallengeAnnouncement();
+    resetAnimation();
+    resetTeachingScene();
+    renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));
+    renderLesson();
+  });
   new ResizeObserver(() => scene.resize()).observe(container);
 
   bindControls(root, {
