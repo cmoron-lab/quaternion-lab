@@ -8,6 +8,8 @@ import {
 describe("sandbox validation", () => {
   test("rejects non-finite input", () => {
     expect(readFinite("NaN", "roll").ok).toBe(false);
+    expect(readFinite("", "roll").ok).toBe(false);
+    expect(readFinite("   ", "roll").ok).toBe(false);
   });
 
   test("keeps normalization visible", () => {

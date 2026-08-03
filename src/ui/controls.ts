@@ -38,6 +38,7 @@ const readFields = <T extends readonly string[]>(
 };
 
 export function readFinite(raw: string, label: string): ValidationResult<number> {
+  if (raw.trim() === "") return { ok: false, message: `${label} doit être un nombre fini.` };
   const value = Number(raw);
   return Number.isFinite(value)
     ? { ok: true, value, note: null }
