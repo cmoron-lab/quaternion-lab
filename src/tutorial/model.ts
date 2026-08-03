@@ -40,6 +40,14 @@ export const startTutorial = (): TutorialState => ({
   detailsOpen: false,
 });
 
+export const tutorialChrome = (state: TutorialState) => ({
+  showSandbox: state.mode === "sandbox" || state.screenIndex > 0,
+  showSkip: state.mode === "tutorial",
+  showResume: state.mode === "sandbox",
+  showRestart: state.screenIndex > 0,
+  showTechnicalConventions: state.screenIndex >= 4,
+});
+
 export const nextScreen = (state: TutorialState): TutorialState => ({
   ...state,
   screenIndex: Math.min(LAST_SCREEN_INDEX, Math.max(0, state.screenIndex + 1)),

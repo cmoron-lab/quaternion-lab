@@ -21,7 +21,9 @@ describe("schematic scene boundary", () => {
 
   test("builds a labelled FLU boat without external assets", () => {
     const boat = createBoat();
-    expect(boat.getObjectByName("hull")).toBeDefined();
+    const hull = boat.getObjectByName("hull") as THREE.Mesh;
+    hull.geometry.computeBoundingBox();
+    expect(hull.geometry.boundingBox?.max.x).toBeGreaterThan(1.3);
     expect(boat.getObjectByName("bow")?.position.x).toBeGreaterThan(0);
     expect(boat.getObjectByName("port-marker")?.position.y).toBeGreaterThan(0);
     expect(boat.getObjectByName("starboard-marker")?.position.y).toBeLessThan(0);

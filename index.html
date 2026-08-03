@@ -13,30 +13,30 @@
           <p class="lab__eyebrow">LOTUSim · laboratoire d'attitude</p>
           <h1>Repères et orientation</h1>
         </div>
-        <p class="convention-badge">Monde ENU · corps FLU · xdyn NED/FRD</p>
+        <p id="convention-badge" class="convention-badge">Scène fixe · bateau mobile</p>
         <nav class="lab__actions" aria-label="Navigation du laboratoire">
-          <button id="sandbox-jump" type="button">Passer au bac à sable</button>
-          <button id="tutorial-resume" type="button">Reprendre le tutoriel</button>
-          <button id="tutorial-restart" type="button">Recommencer</button>
+          <button id="sandbox-jump" type="button">Explorer librement</button>
+          <button id="tutorial-resume" type="button" hidden>Reprendre le tutoriel</button>
+          <button id="tutorial-restart" type="button" hidden>Recommencer depuis le début</button>
         </nav>
       </header>
-      <main class="lab">
+      <main id="lab" class="lab lab--guided-intro">
         <section class="scene-shell" aria-labelledby="scene-title">
           <div class="scene-shell__toolbar">
             <div>
               <h2 id="scene-title">Instrument d'orientation</h2>
-              <p class="scene-shell__legend">Monde ENU: X Est · Y Nord · Z Haut<br />Corps FLU: X Avant · Y Gauche · Z Haut</p>
+              <p id="scene-legend" class="scene-shell__legend">Repère fixe : Est · Nord · Haut<br />Repère du bateau : Avant · Gauche · Haut</p>
             </div>
             <button class="scene-shell__reset" id="reset-camera" type="button">Réinitialiser la caméra</button>
           </div>
-          <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau FLU dans le monde ENU"></div>
-          <p class="axis-legend"><span class="axis-legend__port">Bâbord +Y</span><span class="axis-legend__forward">Avant +X</span><span class="axis-legend__starboard">Tribord −Y</span></p>
+          <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau et repères d'orientation"></div>
+          <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__forward">La pointe indique l'avant</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
         </section>
 
-        <aside id="sandbox" class="controls-panel" aria-label="Bac à sable d'orientation">
+        <aside id="sandbox" class="controls-panel" aria-label="Bac à sable d'orientation" hidden>
           <h2 id="sandbox-title" tabindex="-1">Bac à sable</h2>
           <fieldset>
-            <legend>Quaternion ENU/FLU</legend>
+            <legend>Quaternion [w, x, y, z]</legend>
             <div class="number-grid">
               <label for="qw">w<input id="qw" type="number" step="any" value="1.000000" /></label>
               <label for="qx">x<input id="qx" type="number" step="any" value="0.000000" /></label>
@@ -57,7 +57,7 @@
             </label>
           </fieldset>
           <fieldset>
-            <legend>Euler Z-Y′-X″ ENU/FLU</legend>
+            <legend>Angles d'Euler Z-Y′-X″</legend>
             <label class="range-control" for="roll">Roulis
               <input id="roll" type="range" min="-180" max="180" step="0.1" value="0" />
               <output id="roll-output" for="roll">0.0°</output>
@@ -74,11 +74,11 @@
           <fieldset>
             <legend>Préréglages</legend>
             <div class="preset-grid">
-              <button data-preset="identity-enu" type="button">Identité ENU</button>
+              <button data-preset="identity-enu" type="button">Orientation neutre</button>
               <button data-preset="roll-30" type="button">Roulis 30°</button>
               <button data-preset="pitch-90" type="button">Tangage 90°</button>
-              <button data-preset="xdyn-north" type="button">xdyn Nord</button>
-              <button data-preset="xdyn-east" type="button">xdyn Est</button>
+              <button data-preset="xdyn-north" data-technical type="button" hidden>xdyn Nord</button>
+              <button data-preset="xdyn-east" data-technical type="button" hidden>xdyn Est</button>
             </div>
           </fieldset>
           <p id="validation-message" class="control-message" role="status" aria-live="polite"></p>

@@ -17,6 +17,7 @@ import {
   resumeTutorial,
   skipTutorial,
   startTutorial,
+  tutorialChrome,
 } from "../tutorial/model";
 import {
   bindControls,
@@ -66,7 +67,10 @@ const axisLabel = (axis: readonly number[]): string =>
   `(${axis.map((value) => (Math.abs(value) < 5e-4 ? "0" : value.toFixed(3))).join(", ")})`;
 
 export function mountLabApp(root: HTMLElement): void {
+  const lab = byId<HTMLElement>(root, "lab");
   const container = byId<HTMLElement>(root, "scene-container");
+  const sceneLegend = byId<HTMLElement>(root, "scene-legend");
+  const conventionBadge = byId<HTMLElement>(root, "convention-badge");
   const validation = byId<HTMLElement>(root, "validation-message");
   const normalization = byId<HTMLElement>(root, "normalization-note");
   const gimbalWarning = byId<HTMLElement>(root, "gimbal-warning");
@@ -74,6 +78,10 @@ export function mountLabApp(root: HTMLElement): void {
   const sandbox = byId<HTMLElement>(root, "sandbox");
   const sandboxTitle = byId<HTMLElement>(root, "sandbox-title");
   const lesson = byId<HTMLElement>(root, "lesson-panel");
+  const sandboxJump = byId<HTMLButtonElement>(root, "sandbox-jump");
+  const tutorialResume = byId<HTMLButtonElement>(root, "tutorial-resume");
+  const tutorialRestart = byId<HTMLButtonElement>(root, "tutorial-restart");
+  const technicalControls = root.querySelectorAll<HTMLElement>("[data-technical]");
   const challengeAnnouncer = document.createElement("p");
   challengeAnnouncer.className = "visually-hidden";
   challengeAnnouncer.setAttribute("aria-live", "polite");
@@ -226,9 +234,9 @@ export function mountLabApp(root: HTMLElement): void {
   const screenSpecificMarkup = (screen: TutorialScreen): string => {
     switch (screen.id) {
       case "frames":
-        return `<div class="lesson-demo convention-cards" aria-label="Conversion du préréglage">
-          <p><span>xdyn · NED/FRD · valeur courante</span><code>${quaternionLabel(snapshot.nedFrd)}</code></p>
-          <p><span>LOTUSim · ENU/FLU · valeur courante</span><code>${quaternionLabel(snapshot.enuFlu)}</code></p>
+        return `<div class="lesson-demo convention-cards" aria-label="Repère fixe et repère du bateau">
+          <p><span>Repère fixe de la scène</span><strong>Est · Nord · Haut</strong></p>
+          <p><span>Repère attaché au bateau</span><strong>Avant · Gauche · Haut</strong></p>
         </div>`;
       case "axis-angle": {
         const [w, x, y, z] = snapshot.enuFlu;
@@ -290,7 +298,32 @@ export function mountLabApp(root: HTMLElement): void {
     }
   };
 
+  const renderChrome = () => {
+    const chrome = tutorialChrome(tutorialState);
+    sandbox.hidden = !chrome.showSandbox;
+    sandboxJump.hidden = !chrome.showSkip;
+    tutorialResume.hidden = !chrome.showResume;
+    tutorialRestart.hidden = !chrome.showRestart;
+    technicalControls.forEach((control) => {
+      control.hidden = !chrome.showTechnicalConventions;
+    });
+    lab.classList.toggle("lab--guided-intro", !chrome.showSandbox);
+    conventionBadge.textContent = chrome.showTechnicalConventions
+      ? "Monde ENU · corps FLU · xdyn NED/FRD"
+      : "Scène fixe · bateau mobile";
+    sceneLegend.textContent = chrome.showTechnicalConventions
+      ? "Monde ENU : X Est · Y Nord · Z Haut\nCorps FLU : X Avant · Y Gauche · Z Haut"
+      : "Repère fixe : Est · Nord · Haut\nRepère du bateau : Avant · Gauche · Haut";
+    container.setAttribute(
+      "aria-label",
+      chrome.showTechnicalConventions
+        ? "Bateau FLU dans le monde ENU"
+        : "Bateau et repères d’orientation",
+    );
+  };
+
   const renderLesson = () => {
+    renderChrome();
     const focused = document.activeElement;
     const focusSelector = focused instanceof HTMLElement && lesson.contains(focused)
       ? focused.dataset.lessonAction
@@ -304,7 +337,7 @@ export function mountLabApp(root: HTMLElement): void {
     lesson.hidden = tutorialState.mode === "sandbox";
     if (lesson.hidden) return;
 
-    const screen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
+    const screen: TutorialScreen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
     const detailHeadings = ["Définition exacte", "Dérivation", "Exemple de référence"];
     lesson.innerHTML = `<header class="lesson-panel__header">
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
@@ -341,7 +374,7 @@ export function mountLabApp(root: HTMLElement): void {
       </details>
       <nav class="lesson-navigation" aria-label="Navigation du tutoriel">
         <button type="button" data-lesson-action="previous"${tutorialState.screenIndex === 0 ? " disabled" : ""}>Précédent</button>
-        <button type="button" data-lesson-action="skip">Passer au bac à sable</button>
+        <button type="button" data-lesson-action="skip">Explorer librement</button>
         <button type="button" data-lesson-action="next"${tutorialState.screenIndex === TUTORIAL_SCREENS.length - 1 ? " disabled" : ""}>Suivant</button>
       </nav>`;
 
@@ -467,17 +500,17 @@ export function mountLabApp(root: HTMLElement): void {
   const focusLessonTitle = () => lesson.querySelector<HTMLElement>("h2")?.focus();
 
   resetCamera.addEventListener("click", () => scene.resetCamera());
-  byId<HTMLButtonElement>(root, "sandbox-jump").addEventListener("click", () => {
+  sandboxJump.addEventListener("click", () => {
     enterSandbox();
   });
-  byId<HTMLButtonElement>(root, "tutorial-resume").addEventListener("click", () => {
+  tutorialResume.addEventListener("click", () => {
     tutorialState = resumeTutorial(tutorialState);
     applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
     renderLesson();
     focusLessonTitle();
     lesson.scrollIntoView({ block: "start" });
   });
-  byId<HTMLButtonElement>(root, "tutorial-restart").addEventListener("click", () => {
+  tutorialRestart.addEventListener("click", () => {
     tutorialState = restartTutorial(tutorialState);
     showNegative = false;
     compositionSwapped = false;

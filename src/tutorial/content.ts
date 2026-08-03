@@ -18,20 +18,19 @@ export type TutorialScreen = Readonly<{
 export const TUTORIAL_SCREENS = [
   {
     id: "frames",
-    title: "Repères monde et corps",
+    title: "Orientation : scène et bateau",
     summary:
-      "Un quaternion décrit l’orientation du corps par rapport à un repère monde : ses quatre composantes ne sont pas quatre angles indépendants.",
+      "Une orientation indique comment les directions propres au bateau — avant, gauche et haut — sont tournées par rapport aux directions fixes de la scène. Un quaternion unitaire encode cette rotation avec quatre nombres liés.",
     observe:
-      "Comparez les axes du bateau aux axes du monde, puis changez de convention sans déplacer physiquement le bateau.",
-    formula: "v_world = q ⊗ v_body ⊗ q*",
+      "Cliquez sur Rejouer : le grand repère reste fixe dans la scène, tandis que le petit repère tourne avec le bateau. Aucun réglage n’est nécessaire à cette étape.",
     details: [
-      "NED fixe x vers le Nord, y vers l’Est et z vers le bas; FRD lie x à l’avant, y à droite et z vers le bas. ENU fixe x vers l’Est, y vers le Nord et z vers le haut; FLU lie x à l’avant, y à gauche et z vers le haut.",
-      "Pour un quaternion unitaire Hamilton actif corps-vers-monde, v_body désigne le vecteur corps plongé dans le quaternion pur (0, v). Son image est v_world=q ⊗ v_body ⊗ q*, où q* est le conjugué et donc l’inverse de q.",
-      "Un changement de convention ne modifie pas l’attitude physique, mais il modifie généralement ses composantes. Après le changement complet NED/FRD vers ENU/FLU, l’identité NED représente un bateau pointant au Nord et devient un lacet ENU de +90°.",
+      "Le repère de la scène est fixe : ses trois directions servent de référence. Le repère du bateau lui est attaché : son axe avant, son axe gauche et son axe haut tournent avec lui. L’orientation est la rotation qui fait passer du second au premier.",
+      "Pour un quaternion unitaire Hamilton actif corps-vers-scène, un vecteur du bateau v devient v′ = q ⊗ (0,v) ⊗ q*, où q* est le conjugué et donc l’inverse de q.",
+      "Au départ, le bateau pointe vers l’Est. La démonstration le tourne vers le Nord : sa position ne change pas, seuls son orientation et les axes qui lui sont attachés tournent.",
     ],
     pitfalls: [
-      "Lire w, x, y et z comme quatre angles.",
-      "Changer seulement le repère monde en oubliant le repère corps.",
+      "Lire w, x, y et z comme quatre angles indépendants.",
+      "Confondre l’orientation, qui décrit une rotation, avec la position du bateau.",
     ],
     sources: [
       {

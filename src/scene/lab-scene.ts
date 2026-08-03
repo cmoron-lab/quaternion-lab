@@ -64,20 +64,26 @@ export function createBoat(): THREE.Group {
   const boat = new THREE.Group();
   boat.name = "boat";
 
+  const hullShape = new THREE.Shape()
+    .moveTo(-1.15, -0.45)
+    .lineTo(0.75, -0.45)
+    .lineTo(1.45, 0)
+    .lineTo(0.75, 0.45)
+    .lineTo(-1.15, 0.45)
+    .closePath();
   const hull = new THREE.Mesh(
-    new THREE.BoxGeometry(2, 0.9, 0.35),
+    new THREE.ExtrudeGeometry(hullShape, {
+      depth: 0.35,
+      bevelEnabled: false,
+    }).translate(0, 0, -0.175),
     new THREE.MeshStandardMaterial({ color: INK, roughness: 0.65 }),
   );
   hull.name = "hull";
   boat.add(hull);
 
-  const bow = new THREE.Mesh(
-    new THREE.ConeGeometry(0.48, 0.85, 4),
-    new THREE.MeshStandardMaterial({ color: INK, roughness: 0.65 }),
-  );
+  const bow = new THREE.Object3D();
   bow.name = "bow";
-  bow.rotation.z = -Math.PI / 2;
-  bow.position.x = 1.3;
+  bow.position.x = 1.45;
   boat.add(bow);
 
   for (const [name, color, y] of [

@@ -9,6 +9,7 @@ import {
   resumeTutorial,
   skipTutorial,
   startTutorial,
+  tutorialChrome,
 } from "./model";
 
 describe("tutorial", () => {
@@ -69,6 +70,40 @@ describe("tutorial", () => {
       screenIndex: 0,
       detailsOpen: false,
     });
+  });
+
+  test("reveals navigation and expert controls only when they are useful", () => {
+    expect(tutorialChrome(startTutorial())).toEqual({
+      showSandbox: false,
+      showSkip: true,
+      showResume: false,
+      showRestart: false,
+      showTechnicalConventions: false,
+    });
+
+    const advanced = nextScreen(startTutorial());
+    expect(tutorialChrome(advanced)).toEqual({
+      showSandbox: true,
+      showSkip: true,
+      showResume: false,
+      showRestart: true,
+      showTechnicalConventions: false,
+    });
+
+    expect(tutorialChrome(skipTutorial(advanced))).toEqual({
+      showSandbox: true,
+      showSkip: false,
+      showResume: true,
+      showRestart: true,
+      showTechnicalConventions: false,
+    });
+
+    let conversion = startTutorial();
+    for (let index = 0; index < 4; index += 1) conversion = nextScreen(conversion);
+    expect(tutorialChrome(conversion).showTechnicalConventions).toBe(true);
+    expect(
+      tutorialChrome(skipTutorial(conversion)).showTechnicalConventions,
+    ).toBe(true);
   });
 
   test("accepts equivalent signs and explains distractors", () => {
