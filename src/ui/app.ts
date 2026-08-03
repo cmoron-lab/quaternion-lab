@@ -67,7 +67,6 @@ const axisLabel = (axis: readonly number[]): string =>
   `(${axis.map((value) => (Math.abs(value) < 5e-4 ? "0" : value.toFixed(3))).join(", ")})`;
 
 export function mountLabApp(root: HTMLElement): void {
-  const lab = byId<HTMLElement>(root, "lab");
   const container = byId<HTMLElement>(root, "scene-container");
   const sceneLegend = byId<HTMLElement>(root, "scene-legend");
   const conventionBadge = byId<HTMLElement>(root, "convention-badge");
@@ -81,7 +80,6 @@ export function mountLabApp(root: HTMLElement): void {
   const sandboxJump = byId<HTMLButtonElement>(root, "sandbox-jump");
   const tutorialResume = byId<HTMLButtonElement>(root, "tutorial-resume");
   const tutorialRestart = byId<HTMLButtonElement>(root, "tutorial-restart");
-  const technicalControls = root.querySelectorAll<HTMLElement>("[data-technical]");
   const challengeAnnouncer = document.createElement("p");
   challengeAnnouncer.className = "visually-hidden";
   challengeAnnouncer.setAttribute("aria-live", "polite");
@@ -304,22 +302,10 @@ export function mountLabApp(root: HTMLElement): void {
     sandboxJump.hidden = !chrome.showSkip;
     tutorialResume.hidden = !chrome.showResume;
     tutorialRestart.hidden = !chrome.showRestart;
-    technicalControls.forEach((control) => {
-      control.hidden = !chrome.showTechnicalConventions;
-    });
-    lab.classList.toggle("lab--guided-intro", !chrome.showSandbox);
-    conventionBadge.textContent = chrome.showTechnicalConventions
-      ? "Monde ENU · corps FLU · xdyn NED/FRD"
-      : "Scène fixe · bateau mobile";
-    sceneLegend.textContent = chrome.showTechnicalConventions
-      ? "Monde ENU : X Est · Y Nord · Z Haut\nCorps FLU : X Avant · Y Gauche · Z Haut"
-      : "Repère fixe : Est · Nord · Haut\nRepère du bateau : Avant · Gauche · Haut";
-    container.setAttribute(
-      "aria-label",
-      chrome.showTechnicalConventions
-        ? "Bateau FLU dans le monde ENU"
-        : "Bateau et repères d’orientation",
-    );
+    conventionBadge.textContent = "Monde ENU · Corps FLU · xdyn NED/FRD";
+    sceneLegend.textContent =
+      "Monde ENU : X East · Y North · Z Up\nCorps FLU : X Forward · Y Left · Z Up";
+    container.setAttribute("aria-label", "Bateau FLU dans le monde ENU");
   };
 
   const renderLesson = () => {

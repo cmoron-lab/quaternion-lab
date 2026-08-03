@@ -41,11 +41,10 @@ export const startTutorial = (): TutorialState => ({
 });
 
 export const tutorialChrome = (state: TutorialState) => ({
-  showSandbox: state.mode === "sandbox" || state.screenIndex > 0,
+  showSandbox: state.mode === "sandbox",
   showSkip: state.mode === "tutorial",
   showResume: state.mode === "sandbox",
   showRestart: state.screenIndex > 0,
-  showTechnicalConventions: state.screenIndex >= 4,
 });
 
 export const nextScreen = (state: TutorialState): TutorialState => ({

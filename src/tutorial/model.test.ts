@@ -72,38 +72,31 @@ describe("tutorial", () => {
     });
   });
 
-  test("reveals navigation and expert controls only when they are useful", () => {
+  test("keeps the chrome stable across screens and reserves the sandbox to sandbox mode", () => {
     expect(tutorialChrome(startTutorial())).toEqual({
       showSandbox: false,
       showSkip: true,
       showResume: false,
       showRestart: false,
-      showTechnicalConventions: false,
     });
 
-    const advanced = nextScreen(startTutorial());
-    expect(tutorialChrome(advanced)).toEqual({
-      showSandbox: true,
+    let last = startTutorial();
+    for (let index = 0; index < TUTORIAL_SCREENS.length - 1; index += 1) {
+      last = nextScreen(last);
+    }
+    expect(tutorialChrome(last)).toEqual({
+      showSandbox: false,
       showSkip: true,
       showResume: false,
       showRestart: true,
-      showTechnicalConventions: false,
     });
 
-    expect(tutorialChrome(skipTutorial(advanced))).toEqual({
+    expect(tutorialChrome(skipTutorial(last))).toEqual({
       showSandbox: true,
       showSkip: false,
       showResume: true,
       showRestart: true,
-      showTechnicalConventions: false,
     });
-
-    let conversion = startTutorial();
-    for (let index = 0; index < 4; index += 1) conversion = nextScreen(conversion);
-    expect(tutorialChrome(conversion).showTechnicalConventions).toBe(true);
-    expect(
-      tutorialChrome(skipTutorial(conversion)).showTechnicalConventions,
-    ).toBe(true);
   });
 
   test("accepts equivalent signs and explains distractors", () => {
