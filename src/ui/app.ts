@@ -66,6 +66,10 @@ export function mountLabApp(root: HTMLElement): void {
   const resetCamera = byId<HTMLButtonElement>(root, "reset-camera");
   const sandbox = byId<HTMLElement>(root, "sandbox");
   const lesson = byId<HTMLElement>(root, "lesson-panel");
+  const challengeAnnouncer = document.createElement("p");
+  challengeAnnouncer.className = "visually-hidden";
+  challengeAnnouncer.setAttribute("aria-live", "polite");
+  lesson.after(challengeAnnouncer);
 
   let scene: LabScene;
   try {
@@ -84,9 +88,23 @@ export function mountLabApp(root: HTMLElement): void {
   let comparisonPhase: "world" | "body" | "full" = "full";
   let challengeSelection: number | null = null;
   let challengeFeedback = "";
-  let challengeAnnouncementPending = false;
+  let challengeAnnouncementFrame: number | null = null;
   let paused = false;
   let animationSpeed: 0.5 | 1 = 1;
+
+  const cancelChallengeAnnouncement = () => {
+    if (challengeAnnouncementFrame !== null) cancelAnimationFrame(challengeAnnouncementFrame);
+    challengeAnnouncementFrame = null;
+    challengeAnnouncer.textContent = "";
+  };
+
+  const announceChallenge = (message: string) => {
+    cancelChallengeAnnouncement();
+    challengeAnnouncementFrame = requestAnimationFrame(() => {
+      challengeAnnouncementFrame = null;
+      challengeAnnouncer.textContent = message;
+    });
+  };
 
   const renderSnapshot = (
     next: OrientationSnapshot,
@@ -229,7 +247,7 @@ export function mountLabApp(root: HTMLElement): void {
                 `<button type="button" data-challenge-index="${index}" aria-pressed="${challengeSelection === index}"><code>${quaternionLabel(option.quaternion)}</code></button>`,
             ).join("")}
           </div>
-          <p class="challenge__feedback" aria-live="polite">${challengeAnnouncementPending ? "" : challengeFeedback}</p>
+          <p class="challenge__feedback">${challengeFeedback}</p>
           ${challengeFeedback ? '<button type="button" data-lesson-action="retry-challenge">Réessayer</button>' : ""}
         </div>`;
     }
@@ -290,15 +308,6 @@ export function mountLabApp(root: HTMLElement): void {
         <button type="button" data-lesson-action="next"${tutorialState.screenIndex === TUTORIAL_SCREENS.length - 1 ? " disabled" : ""}>Suivant</button>
       </nav>`;
 
-    if (screen.id === "challenge" && challengeAnnouncementPending) {
-      const announcedFeedback = challengeFeedback;
-      const region = lesson.querySelector<HTMLElement>(".challenge__feedback");
-      challengeAnnouncementPending = false;
-      requestAnimationFrame(() => {
-        if (region?.isConnected) region.textContent = announcedFeedback;
-      });
-    }
-
     lesson.querySelector("details")?.addEventListener("toggle", (event) => {
       tutorialState = {
         ...tutorialState,
@@ -323,10 +332,10 @@ export function mountLabApp(root: HTMLElement): void {
         if (!option) return;
         challengeSelection = index;
         challengeFeedback = evaluateChallenge(option.id).feedback;
-        challengeAnnouncementPending = true;
         resetTeachingScene();
         renderSnapshot(snapshotFromEnu(option.quaternion), null, true);
         renderLesson();
+        announceChallenge(challengeFeedback);
       });
     });
     lesson.querySelectorAll<HTMLButtonElement>("[data-lesson-action]").forEach((button) => {
@@ -341,7 +350,7 @@ export function mountLabApp(root: HTMLElement): void {
           comparisonPhase = "full";
           challengeSelection = null;
           challengeFeedback = "";
-          challengeAnnouncementPending = false;
+          cancelChallengeAnnouncement();
           applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
           renderLesson();
         } else if (action === "skip") {
@@ -363,7 +372,7 @@ export function mountLabApp(root: HTMLElement): void {
         } else if (action === "retry-challenge") {
           challengeSelection = null;
           challengeFeedback = "";
-          challengeAnnouncementPending = false;
+          cancelChallengeAnnouncement();
           applyScreenDemo(screen);
           renderLesson();
         } else if (action === "replay") {
@@ -389,6 +398,7 @@ export function mountLabApp(root: HTMLElement): void {
   };
 
   const enterSandbox = () => {
+    cancelChallengeAnnouncement();
     resetAnimation();
     scene.setOrientation(snapshot.enuFlu);
     resetTeachingScene();
@@ -430,7 +440,7 @@ export function mountLabApp(root: HTMLElement): void {
       comparisonPhase = "full";
       challengeSelection = null;
       challengeFeedback = "";
-      challengeAnnouncementPending = false;
+      cancelChallengeAnnouncement();
       resetAnimation();
       resetTeachingScene();
       renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));

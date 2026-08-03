@@ -266,6 +266,18 @@ select { border: 1px solid #9ac9cf; padding: 0.4rem; background: #fff; color: #0
 .challenge__options button { min-height: 2.7rem; }
 .challenge__feedback { min-height: 2.6rem; margin: 0.65rem 0; color: #123d4a; font-weight: 700; line-height: 1.4; }
 
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .lesson-navigation {
   justify-content: space-between;
   margin-top: 0.85rem;
