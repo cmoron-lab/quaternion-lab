@@ -215,6 +215,8 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .equivalent-card p { grid-column: 1 / -1; padding-top: 0.55rem; border-top: 1px dashed #9ac9cf; }
 .composition-card, .gimbal-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
 .composition-card p, .gimbal-actions p { margin: 0; }
+.gimbal-actions p { display: grid; gap: 0.2rem; }
+.gimbal-actions span { font-size: 0.72rem; font-weight: 700; }
 .lotusim-demo .convention-cards { margin-bottom: 0.65rem; }
 
 .phase-controls, .animation-controls, .lesson-navigation {

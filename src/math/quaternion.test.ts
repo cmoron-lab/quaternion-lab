@@ -69,6 +69,32 @@ describe("scalar-first Hamilton quaternions", () => {
     expect(toEulerZYX(q).gimbalLocked).toBe(true);
   });
 
+  for (const [pitch, expectedYaw] of [
+    [Math.PI / 2, Math.PI / 12],
+    [-Math.PI / 2, (11 * Math.PI) / 36],
+  ] as const) {
+    test(`canonically reconstructs the ${pitch > 0 ? "+" : "-"}90 degree ZYX limit`, () => {
+      const source = fromEulerZYX({
+        roll: Math.PI / 9,
+        pitch,
+        yaw: (7 * Math.PI) / 36,
+      });
+      const extracted = toEulerZYX(source);
+
+      expect(extracted.roll).toBeCloseTo(0, 10);
+      expect(extracted.pitch).toBeCloseTo(pitch, 10);
+      expect(extracted.yaw).toBeCloseTo(expectedYaw, 10);
+      expect(extracted.gimbalLocked).toBe(true);
+
+      const reconstructed = fromEulerZYX(extracted);
+      const dot = source.reduce(
+        (sum, value, index) => sum + value * reconstructed[index]!,
+        0,
+      );
+      expect(Math.abs(dot)).toBeCloseTo(1, 10);
+    });
+  }
+
   test("treats q and -q as the same orientation", () => {
     const q = canonicalize([0.5, 0.5, 0.5, 0.5]);
     const negative = q.map((value) => -value) as [number, number, number, number];

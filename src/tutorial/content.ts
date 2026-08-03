@@ -106,7 +106,7 @@ export const TUTORIAL_SCREENS = [
     formula: "R = R_Z(lacet) R_Y(tangage) R_X(roulis)",
     details: [
       "La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
-      "Avec roulis 20°, tangage 90° et lacet 35°, les anneaux de lacet et de roulis s’alignent. La matrice ne permet alors plus d’identifier séparément ces deux angles; elle ne conserve ici que leur différence 35°−20°=15°.",
+      "Roulis 20°, tangage 90° et lacet 35° est une décomposition valide: les anneaux de lacet et de roulis s’alignent et la matrice ne conserve que leur différence 35°−20°=15°. Pour un affichage déterministe, le laboratoire choisit la représentation canonique équivalente roulis 0°, tangage 90°, lacet 15°.",
       "Plusieurs triplets d’Euler donnent donc la même rotation: c’est une singularité de représentation, pas une disparition du mouvement. À ce point, l'orientation physique existe toujours et le quaternion unitaire la décrit sans singularité interne.",
     ],
     pitfalls: [

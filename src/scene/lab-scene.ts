@@ -190,17 +190,24 @@ export class LabScene {
   setOrientation(q: Quaternion): void {
     this.boat.quaternion.copy(toThreeQuaternion(q));
     this.animation = undefined;
+    this.savedAnimation = undefined;
     this.animationClock = undefined;
   }
 
   animateOrientation(q: Quaternion, durationMs = 900): void {
-    if (!Number.isFinite(durationMs) || durationMs <= 0) {
-      this.setOrientation(q);
-      return;
-    }
     const start = this.boat.quaternion.clone();
     const target = toThreeQuaternion(q);
-    this.savedAnimation = { start: start.clone(), target: target.clone(), durationMs };
+    this.savedAnimation = {
+      start: start.clone(),
+      target: target.clone(),
+      durationMs: Number.isFinite(durationMs) && durationMs > 0 ? durationMs : 900,
+    };
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      this.boat.quaternion.copy(target);
+      this.animation = undefined;
+      this.animationClock = undefined;
+      return;
+    }
     this.animation = { start, target, durationMs, elapsedMs: 0 };
     this.animationClock = undefined;
   }
@@ -210,9 +217,19 @@ export class LabScene {
     this.animationClock = undefined;
   }
 
-  replayAnimation(): void {
+  canReplayAnimation(): boolean {
+    return this.savedAnimation !== undefined;
+  }
+
+  replayAnimation(animate = true): void {
     if (!this.savedAnimation) return;
     const { start, target, durationMs } = this.savedAnimation;
+    if (!animate) {
+      this.boat.quaternion.copy(target);
+      this.animation = undefined;
+      this.animationClock = undefined;
+      return;
+    }
     this.boat.quaternion.copy(start);
     this.animation = { start: start.clone(), target: target.clone(), durationMs, elapsedMs: 0 };
     this.animationClock = undefined;

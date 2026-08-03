@@ -84,6 +84,7 @@ export function mountLabApp(root: HTMLElement): void {
   let comparisonPhase: "world" | "body" | "full" = "full";
   let challengeSelection: number | null = null;
   let challengeFeedback = "";
+  let challengeAnnouncementPending = false;
   let paused = false;
   let animationSpeed: 0.5 | 1 = 1;
 
@@ -194,7 +195,8 @@ export function mountLabApp(root: HTMLElement): void {
       }
       case "gimbal-lock":
         return `<div class="lesson-demo gimbal-actions">
-          <p><code>roulis 20° · tangage 90° · lacet 35°</code></p>
+          <p><span>Décomposition saisie</span><code>roulis 20° · tangage 90° · lacet 35°</code></p>
+          <p><span>Affichage canonique équivalent</span><code>roulis 0° · tangage 90° · lacet 15°</code></p>
           <button type="button" data-lesson-action="trigger-gimbal">Déclencher 90°</button>
           <button type="button" data-lesson-action="reset-gimbal">Réinitialiser les angles</button>
         </div>`;
@@ -227,13 +229,23 @@ export function mountLabApp(root: HTMLElement): void {
                 `<button type="button" data-challenge-index="${index}" aria-pressed="${challengeSelection === index}"><code>${quaternionLabel(option.quaternion)}</code></button>`,
             ).join("")}
           </div>
-          <p class="challenge__feedback" aria-live="polite">${challengeFeedback}</p>
+          <p class="challenge__feedback" aria-live="polite">${challengeAnnouncementPending ? "" : challengeFeedback}</p>
           ${challengeFeedback ? '<button type="button" data-lesson-action="retry-challenge">Réessayer</button>' : ""}
         </div>`;
     }
   };
 
   const renderLesson = () => {
+    const focused = document.activeElement;
+    const focusSelector = focused instanceof HTMLElement && lesson.contains(focused)
+      ? focused.dataset.lessonAction
+        ? `[data-lesson-action="${focused.dataset.lessonAction}"]`
+        : focused.dataset.phase
+          ? `[data-phase="${focused.dataset.phase}"]`
+          : focused.dataset.challengeIndex
+            ? `[data-challenge-index="${focused.dataset.challengeIndex}"]`
+            : null
+      : null;
     lesson.hidden = tutorialState.mode === "sandbox";
     if (lesson.hidden) return;
 
@@ -241,14 +253,14 @@ export function mountLabApp(root: HTMLElement): void {
     const detailHeadings = ["Définition exacte", "Dérivation avec les valeurs courantes", "Exemple numérique"];
     lesson.innerHTML = `<header class="lesson-panel__header">
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
-        <h2>${screen.title}</h2>
+        <h2 tabindex="-1">${screen.title}</h2>
       </header>
       <p class="lesson-panel__summary">${screen.summary}</p>
       <p class="lesson-panel__observe"><strong>À observer</strong>${screen.observe}</p>
       ${screen.formula ? `<code class="lesson-panel__formula">${screen.formula}</code>` : ""}
       ${screenSpecificMarkup(screen)}
       <div class="animation-controls" role="group" aria-label="Animation de la leçon">
-        <button type="button" data-lesson-action="replay">Rejouer</button>
+        <button type="button" data-lesson-action="replay"${scene.canReplayAnimation() ? "" : " disabled"}>Rejouer</button>
         <button type="button" data-lesson-action="pause" aria-pressed="${paused}">${paused ? "Reprendre" : "Pause"}</button>
         <label>Vitesse
           <select id="lesson-speed">
@@ -278,6 +290,15 @@ export function mountLabApp(root: HTMLElement): void {
         <button type="button" data-lesson-action="next"${tutorialState.screenIndex === TUTORIAL_SCREENS.length - 1 ? " disabled" : ""}>Suivant</button>
       </nav>`;
 
+    if (screen.id === "challenge" && challengeAnnouncementPending) {
+      const announcedFeedback = challengeFeedback;
+      const region = lesson.querySelector<HTMLElement>(".challenge__feedback");
+      challengeAnnouncementPending = false;
+      requestAnimationFrame(() => {
+        if (region?.isConnected) region.textContent = announcedFeedback;
+      });
+    }
+
     lesson.querySelector("details")?.addEventListener("toggle", (event) => {
       tutorialState = {
         ...tutorialState,
@@ -302,6 +323,7 @@ export function mountLabApp(root: HTMLElement): void {
         if (!option) return;
         challengeSelection = index;
         challengeFeedback = evaluateChallenge(option.id).feedback;
+        challengeAnnouncementPending = true;
         resetTeachingScene();
         renderSnapshot(snapshotFromEnu(option.quaternion), null, true);
         renderLesson();
@@ -319,13 +341,11 @@ export function mountLabApp(root: HTMLElement): void {
           comparisonPhase = "full";
           challengeSelection = null;
           challengeFeedback = "";
+          challengeAnnouncementPending = false;
           applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
           renderLesson();
         } else if (action === "skip") {
-          tutorialState = skipTutorial(tutorialState);
-          resetTeachingScene();
-          renderLesson();
-          sandbox.scrollIntoView({ block: "start" });
+          enterSandbox();
         } else if (action === "toggle-sign") {
           showNegative = !showNegative;
           renderLesson();
@@ -343,10 +363,11 @@ export function mountLabApp(root: HTMLElement): void {
         } else if (action === "retry-challenge") {
           challengeSelection = null;
           challengeFeedback = "";
+          challengeAnnouncementPending = false;
+          applyScreenDemo(screen);
           renderLesson();
         } else if (action === "replay") {
-          if (reducedMotion.matches) renderSnapshot(snapshot, null, true);
-          else scene.replayAnimation();
+          scene.replayAnimation(!reducedMotion.matches);
         } else if (action === "pause") {
           paused = !paused;
           scene.pauseAnimation(paused);
@@ -354,6 +375,26 @@ export function mountLabApp(root: HTMLElement): void {
         }
       });
     });
+
+    if (focusSelector) {
+      const restored = lesson.querySelector<HTMLElement>(focusSelector);
+      const fallback = screen.id === "challenge"
+        ? lesson.querySelector<HTMLElement>("[data-challenge-index]")
+        : lesson.querySelector<HTMLElement>("h2");
+      const target = restored instanceof HTMLButtonElement && restored.disabled
+        ? fallback
+        : restored ?? fallback;
+      target?.focus();
+    }
+  };
+
+  const enterSandbox = () => {
+    resetAnimation();
+    scene.setOrientation(snapshot.enuFlu);
+    resetTeachingScene();
+    tutorialState = skipTutorial(tutorialState);
+    renderLesson();
+    sandbox.scrollIntoView({ block: "start" });
   };
 
   const update = <T>(
@@ -367,14 +408,12 @@ export function mountLabApp(root: HTMLElement): void {
     }
     resetTeachingScene();
     renderSnapshot(derive(result.value), result.note);
+    renderLesson();
   };
 
   resetCamera.addEventListener("click", () => scene.resetCamera());
   byId<HTMLButtonElement>(root, "sandbox-jump").addEventListener("click", () => {
-    tutorialState = skipTutorial(tutorialState);
-    resetTeachingScene();
-    renderLesson();
-    sandbox.scrollIntoView({ block: "start" });
+    enterSandbox();
   });
   byId<HTMLButtonElement>(root, "tutorial-resume").addEventListener("click", () => {
     tutorialState = resumeTutorial(tutorialState);
@@ -391,6 +430,7 @@ export function mountLabApp(root: HTMLElement): void {
       comparisonPhase = "full";
       challengeSelection = null;
       challengeFeedback = "";
+      challengeAnnouncementPending = false;
       resetAnimation();
       resetTeachingScene();
       renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));
@@ -405,10 +445,11 @@ export function mountLabApp(root: HTMLElement): void {
     onPreset: (preset) => {
       resetTeachingScene();
       renderSnapshot(presetSnapshot(preset));
+      renderLesson();
     },
   });
 
   scene.setAnimationSpeed(animationSpeed);
-  applyScreenDemo(TUTORIAL_SCREENS[0]!, false);
+  applyScreenDemo(TUTORIAL_SCREENS[0]!);
   renderLesson();
 }

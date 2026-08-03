@@ -85,11 +85,20 @@ export function fromEulerZYX({ roll, pitch, yaw }: EulerZYX): Quaternion {
 export function toEulerZYX(q: Quaternion): EulerZYXResult {
   const [w, x, y, z] = normalize(q);
   const sinPitch = clamp(2 * (w * y - z * x), -1, 1);
+  const gimbalLocked = Math.abs(Math.abs(sinPitch) - 1) < 1e-9;
+  if (gimbalLocked) {
+    return {
+      roll: 0,
+      pitch: sinPitch < 0 ? -Math.PI / 2 : Math.PI / 2,
+      yaw: Math.atan2(2 * (w * z - x * y), 1 - 2 * (x * x + z * z)),
+      gimbalLocked,
+    };
+  }
   return {
     roll: Math.atan2(2 * (w * x + y * z), 1 - 2 * (x * x + y * y)),
     pitch: Math.asin(sinPitch),
     yaw: Math.atan2(2 * (w * z + x * y), 1 - 2 * (y * y + z * z)),
-    gimbalLocked: Math.abs(Math.abs(sinPitch) - 1) < 1e-9,
+    gimbalLocked,
   };
 }
 
