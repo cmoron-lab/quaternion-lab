@@ -1,3 +1,95 @@
 body {
   margin: 0;
+  min-width: 320px;
+  background: #edf3f2;
+  color: #082733;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.lab {
+  box-sizing: border-box;
+  min-height: 100vh;
+  padding: clamp(1rem, 3vw, 2.5rem);
+}
+
+.lab__header {
+  max-width: 76rem;
+  margin: 0 auto 0.75rem;
+}
+
+.lab__eyebrow {
+  margin: 0;
+  color: #218b68;
+  font: 700 0.75rem/1.2 "Arial Narrow", "Liberation Sans Narrow", sans-serif;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+h1 {
+  margin: 0.2rem 0 0;
+  font: 700 clamp(1.8rem, 5vw, 3.2rem)/1 "Arial Narrow", "Liberation Sans Narrow", sans-serif;
+  letter-spacing: 0.015em;
+}
+
+.scene-shell {
+  max-width: 76rem;
+  margin: auto;
+  border: 1px solid #2ca6b8;
+  background: repeating-linear-gradient(0deg, transparent, transparent 31px, #d7e8e6 32px);
+  box-shadow: 0 0.6rem 1.5rem rgb(8 39 51 / 0.12);
+}
+
+.scene-shell__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid #2ca6b8;
+}
+
+.scene-shell__legend {
+  margin: 0;
+  font: 0.78rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.scene-shell__reset {
+  flex: none;
+  border: 1px solid #082733;
+  border-radius: 0;
+  padding: 0.45rem 0.65rem;
+  background: #e9a23b;
+  color: #082733;
+  cursor: pointer;
+}
+
+.scene-shell__reset:focus-visible {
+  outline: 3px solid #2ca6b8;
+  outline-offset: 2px;
+}
+
+.scene-shell__canvas {
+  min-height: min(68vh, 42rem);
+  background: #123d4a;
+}
+
+.scene-shell__canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+@media (max-width: 38rem) {
+  .scene-shell__toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .scene-shell__reset {
+    width: 100%;
+  }
 }
