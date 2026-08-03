@@ -149,11 +149,23 @@ export function formatNorm(values: readonly number[]): string {
     : "‖q‖ = —";
 }
 
+export const quaternionLabel = (quaternion: Quaternion): string => {
+  const component = (value: number) => {
+    if (Math.abs(value) < 5e-4) return "0";
+    if (Math.abs(Math.abs(value) - Math.SQRT1_2) < 1e-12) {
+      return value < 0 ? "−√½" : "√½";
+    }
+    return Number.isInteger(value) ? String(value) : value.toFixed(3);
+  };
+  return `[${quaternion.map(component).join(", ")}]`;
+};
+
 export function renderControls(root: ParentNode, snapshot: OrientationSnapshot): void {
   snapshot.enuFlu.forEach((value, index) => {
     element<HTMLInputElement>(root, quaternionFields[index]!).value = formatQuaternion(value);
   });
   element<HTMLElement>(root, "norm-indicator").textContent = formatNorm(snapshot.enuFlu);
+  element<HTMLElement>(root, "quaternion-symbolic").textContent = quaternionLabel(snapshot.enuFlu);
   snapshot.axisAngle.axis.forEach((value, index) => {
     element<HTMLInputElement>(root, axisFields[index]!).value = formatQuaternion(value);
   });

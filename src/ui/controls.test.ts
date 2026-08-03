@@ -9,9 +9,9 @@ import {
 import type { OrientationSnapshot } from "../math/frames";
 
 const controlRoot = () => {
-  const values = new Map<string, { value: string }>();
+  const values = new Map<string, { value: string; textContent?: string }>();
   for (const id of [
-    "qw", "qx", "qy", "qz", "norm-indicator",
+    "qw", "qx", "qy", "qz", "norm-indicator", "quaternion-symbolic",
     "axis-x", "axis-y", "axis-z", "axis-angle", "axis-angle-output",
     "roll", "pitch", "yaw", "roll-output", "pitch-output", "yaw-output",
   ]) {
@@ -22,6 +22,7 @@ const controlRoot = () => {
       querySelector: (selector: string) => values.get(selector.slice(1)) ?? null,
     } as unknown as ParentNode,
     value: (id: string) => values.get(id)?.value,
+    text: (id: string) => values.get(id)?.textContent,
   };
 };
 
@@ -77,5 +78,19 @@ describe("sandbox validation", () => {
     expect(controls.value("qw")).toBe("0.000000");
     expect(controls.value("axis-angle-output")).toBe("0.0°");
     expect(controls.value("roll-output")).toBe("0.0°");
+  });
+
+  test("renders the symbolic form with √½ next to the numeric fields", () => {
+    const controls = controlRoot();
+    const snapshot = {
+      enuFlu: [Math.SQRT1_2, 0, 0, Math.SQRT1_2],
+      nedFrd: [1, 0, 0, 0],
+      axisAngle: { axis: [0, 0, 1], angle: Math.PI / 2 },
+      eulerEnu: { roll: 0, pitch: 0, yaw: Math.PI / 2, gimbalLocked: false },
+    } as OrientationSnapshot;
+
+    renderControls(controls.root, snapshot);
+
+    expect(controls.text("quaternion-symbolic")).toBe("[√½, 0, 0, √½]");
   });
 });

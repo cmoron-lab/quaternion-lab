@@ -22,6 +22,7 @@ import {
 } from "../tutorial/model";
 import {
   bindControls,
+  quaternionLabel,
   renderControls,
   type Preset,
   type ValidationResult,
@@ -46,17 +47,6 @@ const presetSnapshot = (preset: Preset): OrientationSnapshot => {
     case "xdyn-east":
       return snapshotFromNed(fromEulerZYX({ roll: 0, pitch: 0, yaw: Math.PI / 2 }));
   }
-};
-
-const quaternionLabel = (quaternion: Quaternion): string => {
-  const component = (value: number) => {
-    if (Math.abs(value) < 5e-4) return "0";
-    if (Math.abs(Math.abs(value) - Math.SQRT1_2) < 1e-12) {
-      return value < 0 ? "−√½" : "√½";
-    }
-    return Number.isInteger(value) ? String(value) : value.toFixed(3);
-  };
-  return `[${quaternion.map(component).join(", ")}]`;
 };
 
 const radians = (value: number): number => (value * Math.PI) / 180;
