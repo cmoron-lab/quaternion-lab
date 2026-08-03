@@ -1,5 +1,6 @@
 import { describe, expect, test } from "bun:test";
 import {
+  formatNorm,
   readFinite,
   renderControls,
   validateAxisAngleInput,
@@ -10,7 +11,7 @@ import type { OrientationSnapshot } from "../math/frames";
 const controlRoot = () => {
   const values = new Map<string, { value: string }>();
   for (const id of [
-    "qw", "qx", "qy", "qz",
+    "qw", "qx", "qy", "qz", "norm-indicator",
     "axis-x", "axis-y", "axis-z", "axis-angle", "axis-angle-output",
     "roll", "pitch", "yaw", "roll-output", "pitch-output", "yaw-output",
   ]) {
@@ -31,12 +32,13 @@ describe("sandbox validation", () => {
     expect(readFinite("   ", "roll").ok).toBe(false);
   });
 
-  test("keeps normalization visible", () => {
+  test("explains normalization instead of just snapping", () => {
     const result = validateQuaternionInput([2, 0, 0, 0]);
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.value).toEqual([1, 0, 0, 0]);
       expect(result.note).toContain("norme 2");
+      expect(result.note).toContain("unitaire");
     }
   });
 
@@ -46,7 +48,14 @@ describe("sandbox validation", () => {
     if (result.ok) {
       expect(result.value).toEqual([1, 0, 0, 0]);
       expect(result.note).toContain("q et -q");
+      expect(result.note).toContain("w ≥ 0");
     }
+  });
+
+  test("formats the live norm indicator", () => {
+    expect(formatNorm([1, 0, 0, 0])).toBe("‖q‖ = 1.000000");
+    expect(formatNorm([0.5, 0.5, 0.5, 0.5])).toBe("‖q‖ = 1.000000");
+    expect(formatNorm([Number.NaN, 0, 0, 0])).toBe("‖q‖ = —");
   });
 
   test("rejects zero quaternion and zero axis", () => {

@@ -160,6 +160,7 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .control-message, .control-note, .control-warning { margin: 0.55rem 0 0; font-size: 0.8rem; line-height: 1.35; }
 .control-message, .control-warning { color: #a32c38; font-weight: 700; }
 .control-note { color: #123d4a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+.control-note--explained { padding: 0.45rem 0.6rem; border-left: 3px solid #e9a23b; background: #fdf3e3; }
 
 .lesson-panel {
   min-height: 4rem;

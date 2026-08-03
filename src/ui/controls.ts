@@ -53,10 +53,14 @@ export function validateQuaternionInput(raw: Quaternion): ValidationResult<Quate
 
   let value = raw.map((component) => component / norm) as [number, number, number, number];
   const notes: string[] = [];
-  if (Math.abs(norm - 1) > 1e-9) notes.push(`Quaternion normalisé: norme ${norm} → 1`);
+  if (Math.abs(norm - 1) > 1e-9) {
+    notes.push(
+      `Quaternion normalisé : norme ${norm} → 1 — un quaternion d'orientation est unitaire, vos valeurs ont été mises à l'échelle`,
+    );
+  }
   if (value[0] < 0) {
     value = value.map((component) => -component || 0) as [number, number, number, number];
-    notes.push("q et -q décrivent la même rotation; affichage canonique w >= 0");
+    notes.push("q et -q décrivent la même orientation — affichage canonique avec w ≥ 0");
   }
   return { ok: true, value, note: notes.join(" · ") || null };
 }
@@ -114,6 +118,14 @@ export function bindControls(root: ParentNode, callbacks: ControlCallbacks): voi
   };
 
   bindChange(quaternionFields, () => callbacks.onQuaternion(quaternionFromFields(root)));
+  const updateNormIndicator = () => {
+    const values = quaternionFields.map((id) => {
+      const raw = element<HTMLInputElement>(root, id).value;
+      return raw.trim() === "" ? Number.NaN : Number(raw);
+    });
+    element<HTMLElement>(root, "norm-indicator").textContent = formatNorm(values);
+  };
+  bindInput(quaternionFields, updateNormIndicator);
   bindChange(axisFields, () => callbacks.onAxisAngle(axisAngleFromFields(root)));
   bindInput(["axis-angle"], () => callbacks.onAxisAngle(axisAngleFromFields(root)));
   bindInput(eulerFields, () => callbacks.onEuler(eulerFromFields(root)));
@@ -131,10 +143,17 @@ const formatFixed = (value: number, digits: number) => {
 const formatQuaternion = (value: number) => formatFixed(value, 6);
 const formatDegrees = (radians: number) => formatFixed((radians * 180) / Math.PI, 1);
 
+export function formatNorm(values: readonly number[]): string {
+  return values.every((value) => Number.isFinite(value))
+    ? `‖q‖ = ${Math.hypot(...values).toFixed(6)}`
+    : "‖q‖ = —";
+}
+
 export function renderControls(root: ParentNode, snapshot: OrientationSnapshot): void {
   snapshot.enuFlu.forEach((value, index) => {
     element<HTMLInputElement>(root, quaternionFields[index]!).value = formatQuaternion(value);
   });
+  element<HTMLElement>(root, "norm-indicator").textContent = formatNorm(snapshot.enuFlu);
   snapshot.axisAngle.axis.forEach((value, index) => {
     element<HTMLInputElement>(root, axisFields[index]!).value = formatQuaternion(value);
   });
