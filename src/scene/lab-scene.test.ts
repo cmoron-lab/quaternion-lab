@@ -39,14 +39,14 @@ describe("schematic scene boundary", () => {
       }));
 
     expect(glyphs("body-axes-flu")).toEqual([
-      { name: "FLU X · Avant", direction: [1, 0, 0] },
-      { name: "FLU Y · Gauche", direction: [0, 1, 0] },
-      { name: "FLU Z · Haut", direction: [0, 0, 1] },
+      { name: "FLU X · Forward", direction: [1, 0, 0] },
+      { name: "FLU Y · Left", direction: [0, 1, 0] },
+      { name: "FLU Z · Up", direction: [0, 0, 1] },
     ]);
     expect(glyphs("body-axes-frd")).toEqual([
-      { name: "FRD X · Avant", direction: [1, 0, 0] },
-      { name: "FRD Y · Droite", direction: [0, -1, 0] },
-      { name: "FRD Z · Bas", direction: [0, 0, -1] },
+      { name: "FRD X · Forward", direction: [1, 0, 0] },
+      { name: "FRD Y · Right", direction: [0, -1, 0] },
+      { name: "FRD Z · Down", direction: [0, 0, -1] },
     ]);
   });
 
@@ -58,14 +58,14 @@ describe("schematic scene boundary", () => {
       }));
 
     expect(glyphs("NED")).toEqual([
-      { name: "NED X · Nord", direction: [0, 1, 0] },
-      { name: "NED Y · Est", direction: [1, 0, 0] },
-      { name: "NED Z · Bas", direction: [0, 0, -1] },
+      { name: "NED X · North", direction: [0, 1, 0] },
+      { name: "NED Y · East", direction: [1, 0, 0] },
+      { name: "NED Z · Down", direction: [0, 0, -1] },
     ]);
     expect(glyphs("ENU")).toEqual([
-      { name: "ENU X · Est", direction: [1, 0, 0] },
-      { name: "ENU Y · Nord", direction: [0, 1, 0] },
-      { name: "ENU Z · Haut", direction: [0, 0, 1] },
+      { name: "ENU X · East", direction: [1, 0, 0] },
+      { name: "ENU Y · North", direction: [0, 1, 0] },
+      { name: "ENU Z · Up", direction: [0, 0, 1] },
     ]);
   });
 

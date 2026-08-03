@@ -15,27 +15,27 @@ type AxisGlyph = Readonly<{
 }>;
 
 const FLU_AXES: readonly AxisGlyph[] = [
-  { name: "FLU X · Avant", direction: [1, 0, 0], color: PORT },
-  { name: "FLU Y · Gauche", direction: [0, 1, 0], color: STARBOARD },
-  { name: "FLU Z · Haut", direction: [0, 0, 1], color: AMBER },
+  { name: "FLU X · Forward", direction: [1, 0, 0], color: PORT },
+  { name: "FLU Y · Left", direction: [0, 1, 0], color: STARBOARD },
+  { name: "FLU Z · Up", direction: [0, 0, 1], color: AMBER },
 ];
 
 const FRD_AXES: readonly AxisGlyph[] = [
-  { name: "FRD X · Avant", direction: [1, 0, 0], color: PORT },
-  { name: "FRD Y · Droite", direction: [0, -1, 0], color: STARBOARD },
-  { name: "FRD Z · Bas", direction: [0, 0, -1], color: AMBER },
+  { name: "FRD X · Forward", direction: [1, 0, 0], color: PORT },
+  { name: "FRD Y · Right", direction: [0, -1, 0], color: STARBOARD },
+  { name: "FRD Z · Down", direction: [0, 0, -1], color: AMBER },
 ];
 
 const ENU_AXES: readonly AxisGlyph[] = [
-  { name: "ENU X · Est", direction: [1, 0, 0], color: PORT },
-  { name: "ENU Y · Nord", direction: [0, 1, 0], color: STARBOARD },
-  { name: "ENU Z · Haut", direction: [0, 0, 1], color: AMBER },
+  { name: "ENU X · East", direction: [1, 0, 0], color: PORT },
+  { name: "ENU Y · North", direction: [0, 1, 0], color: STARBOARD },
+  { name: "ENU Z · Up", direction: [0, 0, 1], color: AMBER },
 ];
 
 const NED_AXES: readonly AxisGlyph[] = [
-  { name: "NED X · Nord", direction: [0, 1, 0], color: PORT },
-  { name: "NED Y · Est", direction: [1, 0, 0], color: STARBOARD },
-  { name: "NED Z · Bas", direction: [0, 0, -1], color: AMBER },
+  { name: "NED X · North", direction: [0, 1, 0], color: PORT },
+  { name: "NED Y · East", direction: [1, 0, 0], color: STARBOARD },
+  { name: "NED Z · Down", direction: [0, 0, -1], color: AMBER },
 ];
 
 export const toThreeQuaternion = ([w, x, y, z]: Quaternion) =>
