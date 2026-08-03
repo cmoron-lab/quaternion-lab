@@ -123,8 +123,13 @@ export function bindControls(root: ParentNode, callbacks: ControlCallbacks): voi
   });
 }
 
-const formatQuaternion = (value: number) => value.toFixed(6);
-const formatDegrees = (radians: number) => ((radians * 180) / Math.PI).toFixed(1);
+const formatFixed = (value: number, digits: number) => {
+  const formatted = value.toFixed(digits);
+  return Number(formatted) === 0 ? (0).toFixed(digits) : formatted;
+};
+
+const formatQuaternion = (value: number) => formatFixed(value, 6);
+const formatDegrees = (radians: number) => formatFixed((radians * 180) / Math.PI, 1);
 
 export function renderControls(root: ParentNode, snapshot: OrientationSnapshot): void {
   snapshot.enuFlu.forEach((value, index) => {

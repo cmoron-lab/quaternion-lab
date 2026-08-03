@@ -431,9 +431,7 @@ export function mountLabApp(root: HTMLElement): void {
     renderLesson();
     lesson.scrollIntoView({ block: "start" });
   });
-  root
-    .querySelector<HTMLButtonElement>('.lab__actions button[data-preset="identity-enu"]')
-    ?.addEventListener("click", () => {
+  byId<HTMLButtonElement>(root, "tutorial-restart").addEventListener("click", () => {
       tutorialState = restartTutorial(tutorialState);
       showNegative = false;
       compositionSwapped = false;

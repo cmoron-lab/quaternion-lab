@@ -11,6 +11,7 @@ body { margin: 0; min-width: 320px; }
 button, input, select { font: inherit; }
 
 button {
+  min-height: 2.75rem;
   border: 1px solid #082733;
   border-radius: 0;
   padding: 0.45rem 0.65rem;
@@ -97,7 +98,7 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
 .scene-shell__toolbar h2 { margin-bottom: 0.3rem; }
 .scene-shell__legend { margin: 0; font: 0.72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .scene-shell__reset { flex: none; }
-.scene-shell__canvas { min-height: 0; background: #123d4a; }
+.scene-shell__canvas { min-height: 0; background: #123d4a; color: #fff; }
 .scene-shell__canvas canvas { display: block; width: 100%; height: 100%; }
 
 .axis-legend {
@@ -285,10 +286,19 @@ select { border: 1px solid #9ac9cf; padding: 0.4rem; background: #fff; color: #0
   border-top: 2px solid #082733;
 }
 
-@media (max-width: 52rem) {
+@media (max-width: 56.25rem) {
   .lab { grid-template-columns: 1fr; }
   .scene-shell { grid-template-rows: auto minmax(22rem, 55vh) auto; }
   .lesson-details { grid-template-columns: 1fr; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 @media (max-width: 38rem) {
