@@ -232,17 +232,22 @@ export function mountLabApp(root: HTMLElement): void {
   const screenSpecificMarkup = (screen: TutorialScreen): string => {
     switch (screen.id) {
       case "frames":
-        return `<div class="lesson-demo convention-cards" aria-label="Repère fixe et repère du bateau">
-          <p><span>Repère fixe de la scène</span><strong>Est · Nord · Haut</strong></p>
-          <p><span>Repère attaché au bateau</span><strong>Avant · Gauche · Haut</strong></p>
+        return `<div class="lesson-demo convention-cards" aria-label="Repère monde ENU et repère corps FLU">
+          <p><span>Monde ENU (East–North–Up)</span><strong>X East · Y North · Z Up</strong></p>
+          <p><span>Corps FLU (Forward–Left–Up)</span><strong>X Forward · Y Left · Z Up</strong></p>
         </div>`;
       case "axis-angle": {
         const [w, x, y, z] = snapshot.enuFlu;
         const equivalent: Quaternion = showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu;
+        const thetaDegrees = ((snapshot.axisAngle.angle * 180) / Math.PI).toFixed(1);
         return `<div class="lesson-demo equivalent-card">
-          <div><span>q courant · axe ${axisLabel(snapshot.axisAngle.axis)} · θ ${degreesLabel(snapshot.axisAngle.angle)}</span><code>${quaternionLabel(snapshot.enuFlu)}</code></div>
+          <div><span>q courant · axe ${axisLabel(snapshot.axisAngle.axis)} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
           <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
-          <p aria-live="polite"><span>Représentation équivalente affichée</span><code>${quaternionLabel(equivalent)}</code></p>
+          <label class="range-control" for="lesson-theta">θ
+            <input id="lesson-theta" type="range" min="0" max="180" step="0.1" value="${thetaDegrees}" />
+            <output id="lesson-theta-output" for="lesson-theta">${degreesLabel(snapshot.axisAngle.angle)}</output>
+          </label>
+          <p aria-live="polite"><span>Représentation équivalente affichée</span><code id="lesson-equivalent-q">${quaternionLabel(equivalent)}</code></p>
         </div>`;
       }
       case "composition": {
@@ -254,13 +259,24 @@ export function mountLabApp(root: HTMLElement): void {
           <button type="button" data-lesson-action="swap-composition">Permuter l’ordre</button>
         </div>`;
       }
-      case "gimbal-lock":
+      case "gimbal-lock": {
+        const rollDegrees = ((snapshot.eulerEnu.roll * 180) / Math.PI).toFixed(1);
+        const yawDegrees = ((snapshot.eulerEnu.yaw * 180) / Math.PI).toFixed(1);
         return `<div class="lesson-demo gimbal-actions">
-          <p><span>Décomposition canonique courante</span><code>roulis ${degreesLabel(snapshot.eulerEnu.roll)} · tangage ${degreesLabel(snapshot.eulerEnu.pitch)} · lacet ${degreesLabel(snapshot.eulerEnu.yaw)}</code></p>
-          <p><span>Quaternion courant</span><code>${quaternionLabel(snapshot.enuFlu)}</code></p>
+          <p><span>Décomposition canonique courante</span><code id="lesson-gimbal-euler">roulis ${degreesLabel(snapshot.eulerEnu.roll)} · tangage ${degreesLabel(snapshot.eulerEnu.pitch)} · lacet ${degreesLabel(snapshot.eulerEnu.yaw)}</code></p>
+          <p><span>Quaternion courant</span><code id="lesson-gimbal-q">${quaternionLabel(snapshot.enuFlu)}</code></p>
           <button type="button" data-lesson-action="trigger-gimbal">Déclencher 90°</button>
           <button type="button" data-lesson-action="reset-gimbal">Réinitialiser les angles</button>
+          <label class="range-control" for="lesson-roll">Roulis
+            <input id="lesson-roll" type="range" min="-180" max="180" step="0.1" value="${rollDegrees}" />
+            <output id="lesson-roll-output" for="lesson-roll">${degreesLabel(snapshot.eulerEnu.roll)}</output>
+          </label>
+          <label class="range-control" for="lesson-yaw">Lacet
+            <input id="lesson-yaw" type="range" min="-180" max="180" step="0.1" value="${yawDegrees}" />
+            <output id="lesson-yaw-output" for="lesson-yaw">${degreesLabel(snapshot.eulerEnu.yaw)}</output>
+          </label>
         </div>`;
+      }
       case "lotusim-xdyn": {
         const formula =
           comparisonPhase === "world"
@@ -329,9 +345,7 @@ export function mountLabApp(root: HTMLElement): void {
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
         <h2 tabindex="-1">${screen.title}</h2>
       </header>
-      <p class="lesson-panel__observe"><strong>Manipulation</strong>${screen.tryIt}</p>
-      <p class="lesson-panel__summary">${screen.summary}</p>
-      <p class="lesson-panel__observe"><strong>À retenir</strong>${screen.takeaway}</p>
+      <p class="lesson-panel__tryit"><strong>Manipulation</strong>${screen.tryIt}</p>
       ${screenSpecificMarkup(screen)}
       <div class="animation-controls" role="group" aria-label="Animation de la leçon">
         <button type="button" data-lesson-action="replay"${scene.canReplayAnimation() ? "" : " disabled"}>Rejouer</button>
@@ -343,6 +357,8 @@ export function mountLabApp(root: HTMLElement): void {
           </select>
         </label>
       </div>
+      <p class="lesson-panel__summary"><strong>Ce que vous venez d'observer</strong>${screen.summary}</p>
+      <p class="lesson-panel__takeaway"><strong>À retenir</strong>${screen.takeaway}</p>
       <details${tutorialState.detailsOpen ? " open" : ""}>
         <summary>Comprendre en détail</summary>
         <ol class="lesson-details">
@@ -374,6 +390,53 @@ export function mountLabApp(root: HTMLElement): void {
       animationSpeed = Number((event.currentTarget as HTMLSelectElement).value) as 0.5 | 1;
       scene.setAnimationSpeed(animationSpeed);
     });
+    const thetaSlider = lesson.querySelector<HTMLInputElement>("#lesson-theta");
+    thetaSlider?.addEventListener("input", () => {
+      snapshot = snapshotFromEnu(
+        fromAxisAngle({ axis: snapshot.axisAngle.axis, angle: radians(Number(thetaSlider.value)) }),
+      );
+      scene.setOrientation(snapshot.enuFlu);
+      scene.setRotationAxis(snapshot.axisAngle.axis);
+      renderControls(root, snapshot);
+      const output = lesson.querySelector<HTMLOutputElement>("#lesson-theta-output");
+      if (output) output.value = degreesLabel(snapshot.axisAngle.angle);
+      const thetaLabel = lesson.querySelector<HTMLElement>("#lesson-theta-label");
+      if (thetaLabel) thetaLabel.textContent = degreesLabel(snapshot.axisAngle.angle);
+      const current = lesson.querySelector<HTMLElement>("#lesson-current-q");
+      if (current) current.textContent = quaternionLabel(snapshot.enuFlu);
+      const [w, x, y, z] = snapshot.enuFlu;
+      const equivalentCode = lesson.querySelector<HTMLElement>("#lesson-equivalent-q");
+      if (equivalentCode) {
+        equivalentCode.textContent = quaternionLabel(showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu);
+      }
+    });
+    thetaSlider?.addEventListener("change", () => renderLesson());
+
+    const rollSlider = lesson.querySelector<HTMLInputElement>("#lesson-roll");
+    const yawSlider = lesson.querySelector<HTMLInputElement>("#lesson-yaw");
+    const syncGimbal = () => {
+      if (!rollSlider || !yawSlider) return;
+      snapshot = snapshotFromEnu(
+        fromEulerZYX({
+          roll: radians(Number(rollSlider.value)),
+          pitch: snapshot.eulerEnu.pitch,
+          yaw: radians(Number(yawSlider.value)),
+        }),
+      );
+      scene.setOrientation(snapshot.enuFlu);
+      scene.setGimbalAngles(snapshot.eulerEnu);
+      renderControls(root, snapshot);
+      const eulerCode = lesson.querySelector<HTMLElement>("#lesson-gimbal-euler");
+      if (eulerCode) {
+        eulerCode.textContent = `roulis ${degreesLabel(snapshot.eulerEnu.roll)} · tangage ${degreesLabel(snapshot.eulerEnu.pitch)} · lacet ${degreesLabel(snapshot.eulerEnu.yaw)}`;
+      }
+      const qCode = lesson.querySelector<HTMLElement>("#lesson-gimbal-q");
+      if (qCode) qCode.textContent = quaternionLabel(snapshot.enuFlu);
+    };
+    rollSlider?.addEventListener("input", syncGimbal);
+    yawSlider?.addEventListener("input", syncGimbal);
+    rollSlider?.addEventListener("change", () => renderLesson());
+    yawSlider?.addEventListener("change", () => renderLesson());
     lesson.querySelectorAll<HTMLButtonElement>("[data-phase]").forEach((button) => {
       button.addEventListener("click", () => {
         comparisonPhase = button.dataset.phase as typeof comparisonPhase;
