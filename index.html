@@ -6,7 +6,88 @@
     <title>LOTUSim Quaternion Lab</title>
   </head>
   <body>
-    <div id="app">Chargement du laboratoire…</div>
+    <div id="app">
+      <header class="lab__header">
+        <div>
+          <p class="lab__eyebrow">LOTUSim · laboratoire d'attitude</p>
+          <h1>Repères et orientation</h1>
+        </div>
+        <p class="convention-badge">Monde ENU · corps FLU · xdyn NED/FRD</p>
+        <nav class="lab__actions" aria-label="Navigation du laboratoire">
+          <button id="sandbox-jump" type="button">Passer au bac à sable</button>
+          <button id="tutorial-resume" type="button">Reprendre le tutoriel</button>
+          <button data-preset="identity-enu" type="button">Recommencer</button>
+        </nav>
+      </header>
+      <main class="lab">
+        <section class="scene-shell" aria-labelledby="scene-title">
+          <div class="scene-shell__toolbar">
+            <div>
+              <h2 id="scene-title">Instrument d'orientation</h2>
+              <p class="scene-shell__legend">Monde ENU: X Est · Y Nord · Z Haut<br />Corps FLU: X Avant · Y Gauche · Z Haut</p>
+            </div>
+            <button class="scene-shell__reset" id="reset-camera" type="button">Réinitialiser la caméra</button>
+          </div>
+          <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau FLU dans le monde ENU"></div>
+          <p class="axis-legend"><span class="axis-legend__port">Bâbord +Y</span><span class="axis-legend__forward">Avant +X</span><span class="axis-legend__starboard">Tribord −Y</span></p>
+        </section>
+
+        <aside id="sandbox" class="controls-panel" aria-label="Bac à sable d'orientation">
+          <h2>Bac à sable</h2>
+          <fieldset>
+            <legend>Quaternion ENU/FLU</legend>
+            <div class="number-grid">
+              <label for="qw">w<input id="qw" type="number" step="any" value="1.000000" /></label>
+              <label for="qx">x<input id="qx" type="number" step="any" value="0.000000" /></label>
+              <label for="qy">y<input id="qy" type="number" step="any" value="0.000000" /></label>
+              <label for="qz">z<input id="qz" type="number" step="any" value="0.000000" /></label>
+            </div>
+          </fieldset>
+          <fieldset>
+            <legend>Angle-axe</legend>
+            <div class="number-grid">
+              <label for="axis-x">Axe X<input id="axis-x" type="number" step="any" value="1.000000" /></label>
+              <label for="axis-y">Axe Y<input id="axis-y" type="number" step="any" value="0.000000" /></label>
+              <label for="axis-z">Axe Z<input id="axis-z" type="number" step="any" value="0.000000" /></label>
+            </div>
+            <label class="range-control" for="axis-angle">Angle
+              <input id="axis-angle" type="range" min="0" max="180" step="0.1" value="0" />
+              <output id="axis-angle-output" for="axis-angle">0.0°</output>
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Euler Z-Y′-X″ ENU/FLU</legend>
+            <label class="range-control" for="roll">Roulis
+              <input id="roll" type="range" min="-180" max="180" step="0.1" value="0" />
+              <output id="roll-output" for="roll">0.0°</output>
+            </label>
+            <label class="range-control" for="pitch">Tangage
+              <input id="pitch" type="range" min="-90" max="90" step="0.1" value="0" />
+              <output id="pitch-output" for="pitch">0.0°</output>
+            </label>
+            <label class="range-control" for="yaw">Lacet
+              <input id="yaw" type="range" min="-180" max="180" step="0.1" value="0" />
+              <output id="yaw-output" for="yaw">0.0°</output>
+            </label>
+          </fieldset>
+          <fieldset>
+            <legend>Préréglages</legend>
+            <div class="preset-grid">
+              <button data-preset="identity-enu" type="button">Identité ENU</button>
+              <button data-preset="roll-30" type="button">Roulis 30°</button>
+              <button data-preset="pitch-90" type="button">Tangage 90°</button>
+              <button data-preset="xdyn-north" type="button">xdyn Nord</button>
+              <button data-preset="xdyn-east" type="button">xdyn Est</button>
+            </div>
+          </fieldset>
+          <p id="validation-message" class="control-message" role="status" aria-live="polite"></p>
+          <p id="normalization-note" class="control-note" role="status" aria-live="polite"></p>
+          <p id="gimbal-warning" class="control-warning" role="status" aria-live="polite"></p>
+        </aside>
+
+        <section id="lesson-panel" class="lesson-panel" aria-label="Tutoriel d'orientation"></section>
+      </main>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

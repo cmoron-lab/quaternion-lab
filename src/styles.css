@@ -1,46 +1,87 @@
-body {
-  margin: 0;
-  min-width: 320px;
-  background: #edf3f2;
+:root {
   color: #082733;
+  background: #edf3f2;
   font-family: Arial, Helvetica, sans-serif;
 }
 
+* { box-sizing: border-box; }
+
+body { margin: 0; min-width: 320px; }
+
+button, input { font: inherit; }
+
 button {
-  font: inherit;
+  border: 1px solid #082733;
+  border-radius: 0;
+  padding: 0.45rem 0.65rem;
+  background: #edf3f2;
+  color: #082733;
+  cursor: pointer;
 }
 
-.lab {
-  box-sizing: border-box;
-  min-height: 100vh;
-  padding: clamp(1rem, 3vw, 2.5rem);
+button:hover { background: #d7e8e6; }
+button:focus-visible, input:focus-visible { outline: 3px solid #2ca6b8; outline-offset: 2px; }
+
+.lab__header, .lab {
+  width: min(92rem, calc(100% - 2rem));
+  margin-inline: auto;
 }
 
 .lab__header {
-  max-width: 76rem;
-  margin: 0 auto 0.75rem;
+  display: grid;
+  grid-template-columns: minmax(15rem, 1fr) auto;
+  gap: 0.65rem 1.25rem;
+  align-items: end;
+  padding: clamp(1rem, 3vw, 2.5rem) 0 1rem;
+  border-bottom: 2px solid #082733;
+}
+
+.lab__eyebrow, .convention-badge, legend, .axis-legend, output {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
 
 .lab__eyebrow {
   margin: 0;
   color: #218b68;
-  font: 700 0.75rem/1.2 "Arial Narrow", "Liberation Sans Narrow", sans-serif;
+  font-family: "Arial Narrow", "Liberation Sans Narrow", sans-serif;
+  font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-h1 {
-  margin: 0.2rem 0 0;
-  font: 700 clamp(1.8rem, 5vw, 3.2rem)/1 "Arial Narrow", "Liberation Sans Narrow", sans-serif;
-  letter-spacing: 0.015em;
+h1, h2 { font-family: "Arial Narrow", "Liberation Sans Narrow", sans-serif; }
+h1 { margin: 0.2rem 0 0; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 0.95; }
+h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
+
+.convention-badge {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border: 1px solid #2ca6b8;
+  color: #123d4a;
+  font-size: 0.72rem;
+}
+
+.lab__actions { display: flex; gap: 0.45rem; grid-column: 1 / -1; }
+.lab__actions button:last-child, .scene-shell__reset { background: #e9a23b; }
+
+.lab {
+  display: grid;
+  grid-template-columns: minmax(0, 1.65fr) minmax(17rem, 0.65fr);
+  gap: 1rem;
+  padding-bottom: 2rem;
+}
+
+.scene-shell, .controls-panel, .lesson-panel {
+  border: 1px solid #2ca6b8;
+  box-shadow: 0 0.6rem 1.5rem rgb(8 39 51 / 0.12);
 }
 
 .scene-shell {
-  max-width: 76rem;
-  margin: auto;
-  border: 1px solid #2ca6b8;
+  display: grid;
+  grid-template-rows: auto minmax(27rem, 62vh) auto;
+  min-width: 0;
   background: repeating-linear-gradient(0deg, transparent, transparent 31px, #d7e8e6 32px);
-  box-shadow: 0 0.6rem 1.5rem rgb(8 39 51 / 0.12);
 }
 
 .scene-shell__toolbar {
@@ -52,44 +93,59 @@ h1 {
   border-bottom: 1px solid #2ca6b8;
 }
 
-.scene-shell__legend {
+.scene-shell__toolbar h2 { margin-bottom: 0.3rem; }
+.scene-shell__legend { margin: 0; font: 0.72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.scene-shell__reset { flex: none; }
+.scene-shell__canvas { min-height: 0; background: #123d4a; }
+.scene-shell__canvas canvas { display: block; width: 100%; height: 100%; }
+
+.axis-legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
   margin: 0;
-  font: 0.78rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.72rem;
+}
+.axis-legend__port { color: #d94b55; }
+.axis-legend__forward { color: #e9a23b; }
+.axis-legend__starboard { color: #218b68; }
+
+.controls-panel, .lesson-panel {
+  align-self: start;
+  padding: 0.9rem;
+  background: #f7fbfa;
 }
 
-.scene-shell__reset {
-  flex: none;
-  border: 1px solid #082733;
-  border-radius: 0;
-  padding: 0.45rem 0.65rem;
-  background: #e9a23b;
-  color: #082733;
-  cursor: pointer;
-}
+.controls-panel > h2 { margin-bottom: 0.8rem; }
+fieldset { min-width: 0; margin: 0 0 0.7rem; padding: 0.7rem; border: 1px solid #9ac9cf; }
+legend { padding: 0 0.3rem; color: #123d4a; font-size: 0.72rem; }
+label { display: grid; gap: 0.2rem; font-size: 0.78rem; font-weight: 700; }
+input[type="number"] { width: 100%; min-width: 0; border: 1px solid #9ac9cf; padding: 0.35rem; background: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+input[type="range"] { width: 100%; accent-color: #2ca6b8; }
 
-.scene-shell__reset:focus-visible {
-  outline: 3px solid #2ca6b8;
-  outline-offset: 2px;
-}
+.number-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.5rem; }
+.range-control { grid-template-columns: 4.3rem minmax(0, 1fr) 3.6rem; align-items: center; margin-top: 0.45rem; }
+output { text-align: right; font-size: 0.75rem; font-weight: 400; }
+.preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }
+.preset-grid button { min-height: 2.5rem; font-size: 0.76rem; }
 
-.scene-shell__canvas {
-  min-height: min(68vh, 42rem);
-  background: #123d4a;
-}
+.control-message, .control-note, .control-warning { margin: 0.55rem 0 0; font-size: 0.8rem; line-height: 1.35; }
+.control-message, .control-warning { color: #a32c38; font-weight: 700; }
+.control-note { color: #123d4a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-.scene-shell__canvas canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+.lesson-panel { grid-column: 1 / -1; min-height: 4rem; border-style: dashed; box-shadow: none; }
+
+@media (max-width: 52rem) {
+  .lab { grid-template-columns: 1fr; }
+  .scene-shell { grid-template-rows: auto minmax(22rem, 55vh) auto; }
 }
 
 @media (max-width: 38rem) {
-  .scene-shell__toolbar {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .scene-shell__reset {
-    width: 100%;
-  }
+  .lab__header { grid-template-columns: 1fr; }
+  .lab__actions, .scene-shell__toolbar { align-items: stretch; flex-direction: column; }
+  .lab__actions button, .scene-shell__reset { width: 100%; }
+  .range-control { grid-template-columns: 1fr; }
+  output { text-align: left; }
+  .axis-legend { flex-direction: column; gap: 0.2rem; }
 }
