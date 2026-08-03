@@ -1,6 +1,23 @@
 import { snapshotFromEnu, snapshotFromNed, type OrientationSnapshot } from "../math/frames";
-import { fromEulerZYX, type Quaternion } from "../math/quaternion";
+import {
+  fromAxisAngle,
+  fromEulerZYX,
+  multiply,
+  type EulerZYX,
+  type Quaternion,
+} from "../math/quaternion";
 import { LabScene } from "../scene/lab-scene";
+import { TUTORIAL_SCREENS, type TutorialScreen } from "../tutorial/content";
+import {
+  CHALLENGE_OPTIONS,
+  evaluateChallenge,
+  nextScreen,
+  previousScreen,
+  restartTutorial,
+  resumeTutorial,
+  skipTutorial,
+  startTutorial,
+} from "../tutorial/model";
 import {
   bindControls,
   renderControls,
@@ -29,6 +46,18 @@ const presetSnapshot = (preset: Preset): OrientationSnapshot => {
   }
 };
 
+const quaternionLabel = (quaternion: Quaternion): string => {
+  const component = (value: number) => {
+    if (Math.abs(Math.abs(value) - Math.SQRT1_2) < 1e-12) {
+      return value < 0 ? "−√½" : "√½";
+    }
+    return Number.isInteger(value) ? String(value) : value.toFixed(3);
+  };
+  return `[${quaternion.map(component).join(", ")}]`;
+};
+
+const radians = (value: number): number => (value * Math.PI) / 180;
+
 export function mountLabApp(root: HTMLElement): void {
   const container = byId<HTMLElement>(root, "scene-container");
   const validation = byId<HTMLElement>(root, "validation-message");
@@ -47,18 +76,286 @@ export function mountLabApp(root: HTMLElement): void {
     return;
   }
 
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
   let snapshot = snapshotFromEnu([1, 0, 0, 0]);
-  const render = (next: OrientationSnapshot, note: string | null = null) => {
-    scene.setGhostOrientation(snapshot === next ? null : snapshot.enuFlu);
+  let tutorialState = startTutorial();
+  let showNegative = false;
+  let compositionSwapped = false;
+  let comparisonPhase: "world" | "body" | "full" = "full";
+  let challengeSelection: number | null = null;
+  let challengeFeedback = "";
+  let paused = false;
+  let animationSpeed: 0.5 | 1 = 1;
+
+  const renderSnapshot = (
+    next: OrientationSnapshot,
+    note: string | null = null,
+    animate = false,
+  ) => {
     snapshot = next;
-    scene.setOrientation(snapshot.enuFlu);
+    if (animate) scene.animateOrientation(snapshot.enuFlu, reducedMotion.matches ? 0 : 900);
+    else scene.setOrientation(snapshot.enuFlu);
     renderControls(root, snapshot);
     validation.textContent = "";
     normalization.textContent = note ?? "";
     gimbalWarning.textContent = snapshot.eulerEnu.gimbalLocked
-      ? "Singularité de Cardan : à ±90° de tangage, roulis et lacet ne sont plus indépendants."
+      ? "Singularité de représentation : à ±90° de tangage, roulis et lacet ne sont plus indépendants; l'orientation physique existe toujours."
       : "";
   };
+
+  const resetTeachingScene = () => {
+    scene.setGhostOrientation(null);
+    scene.setRotationAxis(null);
+    scene.setGimbalAngles(null);
+    scene.setComparison(null, null);
+    scene.setComparisonPhase("full");
+  };
+
+  const resetAnimation = () => {
+    paused = false;
+    scene.pauseAnimation(false);
+  };
+
+  const composition = (): Readonly<{
+    intermediate: Quaternion;
+    result: Quaternion;
+  }> => {
+    const a = fromEulerZYX({ roll: Math.PI / 2, pitch: 0, yaw: 0 });
+    const b = fromEulerZYX({ roll: 0, pitch: 0, yaw: Math.PI / 2 });
+    return compositionSwapped
+      ? { intermediate: b, result: multiply(a, b) }
+      : { intermediate: a, result: multiply(b, a) };
+  };
+
+  const applyScreenDemo = (screen: TutorialScreen, animate = true) => {
+    resetAnimation();
+    resetTeachingScene();
+    switch (screen.id) {
+      case "frames":
+        renderSnapshot(snapshotFromNed([1, 0, 0, 0]), null, animate);
+        break;
+      case "axis-angle":
+        scene.setRotationAxis([0, 0, 1]);
+        renderSnapshot(
+          snapshotFromEnu(fromAxisAngle({ axis: [0, 0, 1], angle: Math.PI / 3 })),
+          null,
+          animate,
+        );
+        break;
+      case "composition": {
+        const { intermediate, result } = composition();
+        renderSnapshot(snapshotFromEnu(result), null, animate);
+        scene.setGhostOrientation(intermediate);
+        break;
+      }
+      case "gimbal-lock": {
+        const euler: EulerZYX = {
+          roll: radians(20),
+          pitch: radians(90),
+          yaw: radians(35),
+        };
+        renderSnapshot(snapshotFromEnu(fromEulerZYX(euler)), null, animate);
+        scene.setGimbalAngles(euler);
+        break;
+      }
+      case "lotusim-xdyn": {
+        const converted = snapshotFromNed([1, 0, 0, 0]);
+        renderSnapshot(converted, null, animate);
+        scene.setComparison(converted.enuFlu, converted.enuFlu);
+        scene.setComparisonPhase(comparisonPhase);
+        break;
+      }
+      case "challenge":
+        renderSnapshot(snapshotFromNed([Math.SQRT1_2, 0, 0, Math.SQRT1_2]), null, animate);
+        break;
+    }
+  };
+
+  const screenSpecificMarkup = (screen: TutorialScreen): string => {
+    switch (screen.id) {
+      case "frames":
+        return `<div class="lesson-demo convention-cards" aria-label="Conversion du préréglage">
+          <p><span>xdyn · NED/FRD</span><code>[1, 0, 0, 0]</code></p>
+          <p><span>LOTUSim · ENU/FLU</span><code>[√½, 0, 0, √½]</code></p>
+        </div>`;
+      case "axis-angle":
+        return `<div class="lesson-demo equivalent-card">
+          <div><span>q · représentation canonique</span><code>[√3/2, 0, 0, 1/2]</code></div>
+          <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
+          <p aria-live="polite"><span>Représentation équivalente</span><code>${showNegative ? "[−√3/2, 0, 0, −1/2]" : "[√3/2, 0, 0, 1/2]"}</code></p>
+        </div>`;
+      case "composition": {
+        const { result } = composition();
+        return `<div class="lesson-demo composition-card">
+          <p><strong>A</strong> roulis 90° · <strong>B</strong> lacet 90°</p>
+          <code>${compositionSwapped ? "qA ⊗ qB" : "qB ⊗ qA"} = ${quaternionLabel(result)}</code>
+          <button type="button" data-lesson-action="swap-composition">Permuter l’ordre</button>
+        </div>`;
+      }
+      case "gimbal-lock":
+        return `<div class="lesson-demo gimbal-actions">
+          <p><code>roulis 20° · tangage 90° · lacet 35°</code></p>
+          <button type="button" data-lesson-action="trigger-gimbal">Déclencher 90°</button>
+          <button type="button" data-lesson-action="reset-gimbal">Réinitialiser les angles</button>
+        </div>`;
+      case "lotusim-xdyn": {
+        const formula =
+          comparisonPhase === "world"
+            ? "<mark>Q_NED_TO_ENU</mark> ⊗ q_NED_FRD ⊗ Q_FLU_TO_FRD"
+            : comparisonPhase === "body"
+              ? "Q_NED_TO_ENU ⊗ q_NED_FRD ⊗ <mark>Q_FLU_TO_FRD</mark>"
+              : "<mark>Q_NED_TO_ENU ⊗ q_NED_FRD ⊗ Q_FLU_TO_FRD</mark>";
+        return `<div class="lesson-demo lotusim-demo">
+          <div class="convention-cards" aria-label="Deux écritures de la même attitude physique">
+            <p><span>xdyn · (qr,qi,qj,qk)</span><code>[1, 0, 0, 0]</code></p>
+            <p><span>LOTUSim · (w,x,y,z)</span><code>[√½, 0, 0, √½]</code></p>
+          </div>
+          <div class="phase-controls" role="group" aria-label="Étapes de conversion">
+            <button type="button" data-phase="world" aria-pressed="${comparisonPhase === "world"}">Monde</button>
+            <button type="button" data-phase="body" aria-pressed="${comparisonPhase === "body"}">Corps</button>
+            <button type="button" data-phase="full" aria-pressed="${comparisonPhase === "full"}">Conversion complète</button>
+          </div>
+          <code class="phase-formula">${formula}</code>
+        </div>`;
+      }
+      case "challenge":
+        return `<div class="lesson-demo challenge" aria-labelledby="challenge-question">
+          <p id="challenge-question"><strong>Quelle orientation ENU/FLU correspond à xdyn [√½, 0, 0, √½] ?</strong></p>
+          <div class="challenge__options">
+            ${CHALLENGE_OPTIONS.map(
+              (option, index) =>
+                `<button type="button" data-challenge-index="${index}" aria-pressed="${challengeSelection === index}"><code>${quaternionLabel(option.quaternion)}</code></button>`,
+            ).join("")}
+          </div>
+          <p class="challenge__feedback" aria-live="polite">${challengeFeedback}</p>
+          ${challengeFeedback ? '<button type="button" data-lesson-action="retry-challenge">Réessayer</button>' : ""}
+        </div>`;
+    }
+  };
+
+  const renderLesson = () => {
+    lesson.hidden = tutorialState.mode === "sandbox";
+    if (lesson.hidden) return;
+
+    const screen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
+    const detailHeadings = ["Définition exacte", "Dérivation avec les valeurs courantes", "Exemple numérique"];
+    lesson.innerHTML = `<header class="lesson-panel__header">
+        <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
+        <h2>${screen.title}</h2>
+      </header>
+      <p class="lesson-panel__summary">${screen.summary}</p>
+      <p class="lesson-panel__observe"><strong>À observer</strong>${screen.observe}</p>
+      ${screen.formula ? `<code class="lesson-panel__formula">${screen.formula}</code>` : ""}
+      ${screenSpecificMarkup(screen)}
+      <div class="animation-controls" role="group" aria-label="Animation de la leçon">
+        <button type="button" data-lesson-action="replay">Rejouer</button>
+        <button type="button" data-lesson-action="pause" aria-pressed="${paused}">${paused ? "Reprendre" : "Pause"}</button>
+        <label>Vitesse
+          <select id="lesson-speed">
+            <option value="0.5"${animationSpeed === 0.5 ? " selected" : ""}>0,5×</option>
+            <option value="1"${animationSpeed === 1 ? " selected" : ""}>1×</option>
+          </select>
+        </label>
+      </div>
+      <details${tutorialState.detailsOpen ? " open" : ""}>
+        <summary>Comprendre en détail</summary>
+        <ol class="lesson-details">
+          ${screen.details.map((paragraph, index) => `<li><h3>${detailHeadings[index]}</h3><p>${paragraph}</p></li>`).join("")}
+        </ol>
+        <h3>Pièges de convention</h3>
+        <ul>${screen.pitfalls.map((pitfall) => `<li>${pitfall}</li>`).join("")}</ul>
+        <h3>Sources</h3>
+        <ul class="source-list">${screen.sources
+          .map(
+            (source) =>
+              `<li><a href="${source.url}" target="_blank" rel="noreferrer">${source.label}</a></li>`,
+          )
+          .join("")}</ul>
+      </details>
+      <nav class="lesson-navigation" aria-label="Navigation du tutoriel">
+        <button type="button" data-lesson-action="previous"${tutorialState.screenIndex === 0 ? " disabled" : ""}>Précédent</button>
+        <button type="button" data-lesson-action="skip">Passer au bac à sable</button>
+        <button type="button" data-lesson-action="next"${tutorialState.screenIndex === TUTORIAL_SCREENS.length - 1 ? " disabled" : ""}>Suivant</button>
+      </nav>`;
+
+    lesson.querySelector("details")?.addEventListener("toggle", (event) => {
+      tutorialState = {
+        ...tutorialState,
+        detailsOpen: (event.currentTarget as HTMLDetailsElement).open,
+      };
+    });
+    lesson.querySelector<HTMLSelectElement>("#lesson-speed")?.addEventListener("change", (event) => {
+      animationSpeed = Number((event.currentTarget as HTMLSelectElement).value) as 0.5 | 1;
+      scene.setAnimationSpeed(animationSpeed);
+    });
+    lesson.querySelectorAll<HTMLButtonElement>("[data-phase]").forEach((button) => {
+      button.addEventListener("click", () => {
+        comparisonPhase = button.dataset.phase as typeof comparisonPhase;
+        scene.setComparisonPhase(comparisonPhase);
+        renderLesson();
+      });
+    });
+    lesson.querySelectorAll<HTMLButtonElement>("[data-challenge-index]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const index = Number(button.dataset.challengeIndex);
+        const option = CHALLENGE_OPTIONS[index];
+        if (!option) return;
+        challengeSelection = index;
+        challengeFeedback = evaluateChallenge(option.id).feedback;
+        resetTeachingScene();
+        renderSnapshot(snapshotFromEnu(option.quaternion), null, true);
+        renderLesson();
+      });
+    });
+    lesson.querySelectorAll<HTMLButtonElement>("[data-lesson-action]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const action = button.dataset.lessonAction;
+        if (action === "previous" || action === "next") {
+          tutorialState = action === "previous"
+            ? previousScreen(tutorialState)
+            : nextScreen(tutorialState);
+          showNegative = false;
+          compositionSwapped = false;
+          comparisonPhase = "full";
+          challengeSelection = null;
+          challengeFeedback = "";
+          applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
+          renderLesson();
+        } else if (action === "skip") {
+          tutorialState = skipTutorial(tutorialState);
+          resetTeachingScene();
+          renderLesson();
+          sandbox.scrollIntoView({ block: "start" });
+        } else if (action === "toggle-sign") {
+          showNegative = !showNegative;
+          renderLesson();
+        } else if (action === "swap-composition") {
+          compositionSwapped = !compositionSwapped;
+          applyScreenDemo(screen);
+          renderLesson();
+        } else if (action === "trigger-gimbal") {
+          applyScreenDemo(screen);
+          renderLesson();
+        } else if (action === "reset-gimbal") {
+          resetTeachingScene();
+          scene.setGimbalAngles({ roll: 0, pitch: 0, yaw: 0 });
+          renderSnapshot(snapshotFromEnu([1, 0, 0, 0]), null, true);
+        } else if (action === "retry-challenge") {
+          challengeSelection = null;
+          challengeFeedback = "";
+          renderLesson();
+        } else if (action === "replay") {
+          if (reducedMotion.matches) renderSnapshot(snapshot, null, true);
+          else scene.replayAnimation();
+        } else if (action === "pause") {
+          paused = !paused;
+          scene.pauseAnimation(paused);
+          renderLesson();
+        }
+      });
+    });
+  };
+
   const update = <T>(
     result: ValidationResult<T>,
     derive: (value: T) => OrientationSnapshot,
@@ -68,23 +365,50 @@ export function mountLabApp(root: HTMLElement): void {
       normalization.textContent = "";
       return;
     }
-    render(derive(result.value), result.note);
+    resetTeachingScene();
+    renderSnapshot(derive(result.value), result.note);
   };
 
-  render(snapshot);
   resetCamera.addEventListener("click", () => scene.resetCamera());
   byId<HTMLButtonElement>(root, "sandbox-jump").addEventListener("click", () => {
-    sandbox.scrollIntoView({ behavior: "smooth", block: "start" });
+    tutorialState = skipTutorial(tutorialState);
+    resetTeachingScene();
+    renderLesson();
+    sandbox.scrollIntoView({ block: "start" });
   });
   byId<HTMLButtonElement>(root, "tutorial-resume").addEventListener("click", () => {
-    lesson.scrollIntoView({ behavior: "smooth", block: "start" });
+    tutorialState = resumeTutorial(tutorialState);
+    applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
+    renderLesson();
+    lesson.scrollIntoView({ block: "start" });
   });
+  root
+    .querySelector<HTMLButtonElement>('.lab__actions button[data-preset="identity-enu"]')
+    ?.addEventListener("click", () => {
+      tutorialState = restartTutorial(tutorialState);
+      showNegative = false;
+      compositionSwapped = false;
+      comparisonPhase = "full";
+      challengeSelection = null;
+      challengeFeedback = "";
+      resetAnimation();
+      resetTeachingScene();
+      renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));
+      renderLesson();
+    });
   new ResizeObserver(() => scene.resize()).observe(container);
 
   bindControls(root, {
     onQuaternion: (result) => update(result, snapshotFromEnu),
     onAxisAngle: (result) => update(result, snapshotFromEnu),
     onEuler: (result) => update(result, (euler) => snapshotFromEnu(fromEulerZYX(euler))),
-    onPreset: (preset) => render(presetSnapshot(preset)),
+    onPreset: (preset) => {
+      resetTeachingScene();
+      renderSnapshot(presetSnapshot(preset));
+    },
   });
+
+  scene.setAnimationSpeed(animationSpeed);
+  applyScreenDemo(TUTORIAL_SCREENS[0]!, false);
+  renderLesson();
 }

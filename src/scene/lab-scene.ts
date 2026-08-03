@@ -194,6 +194,10 @@ export class LabScene {
   }
 
   animateOrientation(q: Quaternion, durationMs = 900): void {
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      this.setOrientation(q);
+      return;
+    }
     const start = this.boat.quaternion.clone();
     const target = toThreeQuaternion(q);
     this.savedAnimation = { start: start.clone(), target: target.clone(), durationMs };
@@ -235,7 +239,19 @@ export class LabScene {
 
   setGimbalAngles(euler: EulerZYX | null): void {
     this.gimbalRings.visible = euler !== null;
-    if (euler) this.gimbalRings.rotation.set(euler.roll, euler.pitch, euler.yaw, "ZYX");
+    if (!euler) return;
+
+    const z = new THREE.Vector3(0, 0, 1);
+    const axes = [
+      z.clone(),
+      new THREE.Vector3(0, 1, 0).applyAxisAngle(z, euler.yaw),
+      new THREE.Vector3(1, 0, 0)
+        .applyAxisAngle(new THREE.Vector3(0, 1, 0), euler.pitch)
+        .applyAxisAngle(z, euler.yaw),
+    ];
+    this.gimbalRings.children.forEach((ring, index) => {
+      ring.quaternion.setFromUnitVectors(z, axes[index]!.normalize());
+    });
   }
 
   setComparison(left: Quaternion | null, right: Quaternion | null): void {

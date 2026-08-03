@@ -8,7 +8,7 @@
 
 body { margin: 0; min-width: 320px; }
 
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 button {
   border: 1px solid #082733;
@@ -20,7 +20,8 @@ button {
 }
 
 button:hover { background: #d7e8e6; }
-button:focus-visible, input:focus-visible { outline: 3px solid #2ca6b8; outline-offset: 2px; }
+button:disabled { cursor: not-allowed; opacity: 0.45; }
+button:focus-visible, input:focus-visible, select:focus-visible, summary:focus-visible, a:focus-visible { outline: 3px solid #2ca6b8; outline-offset: 2px; }
 
 .lab__header, .lab {
   width: min(92rem, calc(100% - 2rem));
@@ -134,11 +135,146 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .control-message, .control-warning { color: #a32c38; font-weight: 700; }
 .control-note { color: #123d4a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
 
-.lesson-panel { grid-column: 1 / -1; min-height: 4rem; border-style: dashed; box-shadow: none; }
+.lesson-panel {
+  grid-column: 1 / -1;
+  min-height: 4rem;
+  border-style: dashed;
+  box-shadow: none;
+}
+
+.lesson-panel__header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 2px solid #082733;
+}
+
+.lesson-panel__progress {
+  order: 2;
+  margin: 0;
+  color: #218b68;
+  font: 700 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lesson-panel__summary { max-width: 75ch; margin: 0.75rem 0 0; line-height: 1.5; }
+.lesson-panel__observe { max-width: 75ch; margin: 0.55rem 0; line-height: 1.45; }
+.lesson-panel__observe strong { display: block; color: #218b68; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; }
+
+.lesson-panel code, .lesson-demo code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.lesson-panel__formula, .phase-formula {
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.55rem 0.7rem;
+  border-left: 3px solid #e9a23b;
+  background: #edf3f2;
+  color: #082733;
+}
+
+.lesson-demo {
+  margin: 0.8rem 0;
+  padding: 0.7rem;
+  border: 1px solid #9ac9cf;
+  background: #edf3f2;
+}
+
+.convention-cards {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.convention-cards p {
+  display: grid;
+  gap: 0.3rem;
+  margin: 0;
+  padding: 0.6rem;
+  border-left: 3px solid #2ca6b8;
+  background: #fff;
+}
+
+.convention-cards p:last-child { border-left-color: #218b68; }
+.convention-cards span, .equivalent-card span { font-size: 0.72rem; font-weight: 700; }
+
+.equivalent-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.equivalent-card > div, .equivalent-card p { display: grid; gap: 0.25rem; margin: 0; }
+.equivalent-card p { grid-column: 1 / -1; padding-top: 0.55rem; border-top: 1px dashed #9ac9cf; }
+.composition-card, .gimbal-actions { display: flex; flex-wrap: wrap; gap: 0.6rem; align-items: center; }
+.composition-card p, .gimbal-actions p { margin: 0; }
+.lotusim-demo .convention-cards { margin-bottom: 0.65rem; }
+
+.phase-controls, .animation-controls, .lesson-navigation {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.phase-controls button[aria-pressed="true"], .challenge button[aria-pressed="true"] {
+  background: #123d4a;
+  color: #fff;
+}
+
+.phase-formula { margin-top: 0.65rem; }
+mark { background: #f8d79d; color: #082733; }
+
+.animation-controls {
+  margin: 0.8rem 0;
+  padding: 0.55rem 0;
+  border-block: 1px solid #9ac9cf;
+}
+
+.animation-controls label { display: flex; flex-direction: row; gap: 0.45rem; align-items: center; }
+select { border: 1px solid #9ac9cf; padding: 0.4rem; background: #fff; color: #082733; }
+
+.lesson-panel details { margin-top: 0.8rem; border: 1px solid #9ac9cf; background: #fff; }
+.lesson-panel summary { padding: 0.7rem; cursor: pointer; font-weight: 700; }
+.lesson-panel details[open] summary { border-bottom: 1px solid #9ac9cf; }
+.lesson-panel details > h3, .lesson-panel details > ul { margin-inline: 1rem; }
+.lesson-panel details li { line-height: 1.45; }
+
+.lesson-details {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 1rem 1rem 0 2.4rem;
+}
+
+.lesson-details h3 { margin: 0 0 0.35rem; font: 700 0.82rem/1.2 "Arial Narrow", "Liberation Sans Narrow", sans-serif; }
+.lesson-details p { margin: 0; }
+.source-list { padding-bottom: 0.75rem; }
+.source-list a { color: #086c7a; }
+
+.challenge__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
+.challenge__options button { min-height: 2.7rem; }
+.challenge__feedback { min-height: 2.6rem; margin: 0.65rem 0; color: #123d4a; font-weight: 700; line-height: 1.4; }
+
+.lesson-navigation {
+  justify-content: space-between;
+  margin-top: 0.85rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid #082733;
+}
 
 @media (max-width: 52rem) {
   .lab { grid-template-columns: 1fr; }
   .scene-shell { grid-template-rows: auto minmax(22rem, 55vh) auto; }
+  .lesson-details { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 38rem) {
@@ -148,4 +284,10 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
   .range-control { grid-template-columns: 1fr; }
   output { text-align: left; }
   .axis-legend { flex-direction: column; gap: 0.2rem; }
+  .lesson-panel__header { align-items: flex-start; flex-direction: column; }
+  .lesson-panel__progress { order: initial; }
+  .convention-cards, .challenge__options { grid-template-columns: 1fr; }
+  .equivalent-card { grid-template-columns: 1fr; }
+  .equivalent-card p { grid-column: auto; }
+  .lesson-navigation button { flex: 1 1 100%; }
 }

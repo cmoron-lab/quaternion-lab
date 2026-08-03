@@ -10,7 +10,7 @@ export type TutorialScreen = Readonly<{
   summary: string;
   observe: string;
   formula?: string;
-  details: readonly string[];
+  details: readonly [definition: string, derivation: string, example: string];
   pitfalls: readonly string[];
   sources: readonly Readonly<{ label: string; url: string }>[];
 }>;
@@ -51,7 +51,7 @@ export const TUTORIAL_SCREENS = [
     details: [
       "Si u=(uₓ,uᵧ,u_z) est unitaire, alors q=(cos(θ/2), uₓsin(θ/2), uᵧsin(θ/2), u_zsin(θ/2)). Sa norme au carré vaut cos²(θ/2)+‖u‖²sin²(θ/2)=1.",
       "Le demi-angle vient de l’action bilatérale q ⊗ (0, v) ⊗ q*: les deux facteurs quaternion conjugués produisent sur le vecteur la rotation physique d’angle θ. C’est aussi l’écriture exponentielle q=exp((0,u)θ/2).",
-      "Les quaternions q et −q codent la même rotation, car (−q) ⊗ (0, v) ⊗ (−q)* = q ⊗ (0, v) ⊗ q*. Les quaternions unitaires sont donc une double couverture des rotations 3D.",
+      "Ici u=(0,0,1) et θ=60°, donc q=(cos 30°,0,0,sin 30°)=(√3/2,0,0,1/2). Son opposé (−√3/2,0,0,−1/2) produit la même attitude, car les deux signes s’annulent dans q ⊗ (0,v) ⊗ q*.",
     ],
     pitfalls: [
       "Utiliser θ à la place de θ/2 dans les fonctions trigonométriques.",
@@ -77,9 +77,9 @@ export const TUTORIAL_SCREENS = [
       "Regardez le bateau fantôme après A, puis permutez A et B : l’attitude finale change dès que les rotations ne commutent pas.",
     formula: "v′ = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*",
     details: [
-      "La rotation la plus proche du vecteur agit en premier: q_B ⊗ (q_A ⊗ v ⊗ q_A*) ⊗ q_B* = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*.",
-      "Par exemple, +90° autour de X puis +90° autour de Z envoie le vecteur Y vers Z; l’ordre inverse l’envoie vers −X. Ainsi q_B⊗q_A et q_A⊗q_B ne représentent généralement pas la même attitude.",
-      "Il faut aussi nommer les axes. Une rotation supplémentaire q_Δ exprimée autour des axes monde fixes se prémultiplie: q′=q_Δ⊗q. La même rotation exprimée autour des axes corps déjà tournés se postmultiplie: q′=q⊗q_Δ.",
+      "Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q=q_B⊗q_A: la rotation la plus proche du vecteur agit en premier.",
+      "Avec A=roulis +90° et B=lacet +90°, q_A=(√½,√½,0,0) et q_B=(√½,0,0,√½). Ainsi q_B⊗(q_A⊗v⊗q_A*)⊗q_B*=(q_B⊗q_A)⊗v⊗(q_B⊗q_A)*.",
+      "Le produit courant vaut q_B⊗q_A=(1/2,1/2,1/2,1/2). En permutant, q_A⊗q_B=(1/2,1/2,−1/2,1/2): le signe de y change et le bateau prend une autre attitude.",
     ],
     pitfalls: [
       "Lire le produit de gauche à droite comme une liste chronologique.",
@@ -87,7 +87,7 @@ export const TUTORIAL_SCREENS = [
     ],
     sources: [
       {
-        label: "Solà — Why and How to Avoid the Flipped Quaternion Multiplication",
+        label: "Sommer et al. — Why and How to Avoid the Flipped Quaternion Multiplication",
         url: "https://arxiv.org/abs/1801.07478",
       },
       {
@@ -105,9 +105,9 @@ export const TUTORIAL_SCREENS = [
       "Placez le tangage à +90° puis modifiez lacet et roulis : plusieurs couples de valeurs conservent exactement la même attitude.",
     formula: "R = R_Z(lacet) R_Y(tangage) R_X(roulis)",
     details: [
-      "Z-Y′-X″ applique le lacet autour de Z, puis le tangage autour de l’axe Y′ déjà tourné, puis le roulis autour de X″ tourné deux fois. C’est la décomposition lacet–tangage–roulis utilisée ici.",
-      "À un tangage de +90° ou −90°, les axes de la première et de la troisième rotation deviennent colinéaires. Lacet et roulis sont alors couplés: la décomposition perd un degré de liberté et plusieurs triplets d’Euler décrivent une seule attitude.",
-      "L’attitude physique n’est ni perdue ni ambiguë: c’est une singularité de coordonnées de cette paramétrisation d’Euler. Un quaternion unitaire la représente sans cette singularité, mais sa reconversion en angles Z-Y′-X″ rencontre nécessairement le même verrouillage.",
+      "La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
+      "Avec roulis 20°, tangage 90° et lacet 35°, les anneaux de lacet et de roulis s’alignent. La matrice ne permet alors plus d’identifier séparément ces deux angles; elle ne conserve ici que leur différence 35°−20°=15°.",
+      "Plusieurs triplets d’Euler donnent donc la même rotation: c’est une singularité de représentation, pas une disparition du mouvement. À ce point, l'orientation physique existe toujours et le quaternion unitaire la décrit sans singularité interne.",
     ],
     pitfalls: [
       "Attribuer le verrouillage au quaternion plutôt qu’aux coordonnées d’Euler.",
@@ -164,7 +164,8 @@ export const TUTORIAL_SCREENS = [
       "Q_NED_TO_ENU ⊗ [√½,0,0,√½] ⊗ Q_FLU_TO_FRD = [−1,0,0,0] ≡ [1,0,0,0]",
     details: [
       "L’entrée correspond à un cap NED de +90°. Après les changements monde et corps, le bateau pointe vers +x ENU avec ses axes FLU alignés: l’orientation ENU/FLU est l’identité, dont le quaternion opposé représente exactement la même rotation.",
-      "Les propositions erronées sont diagnostiques: [0,√½,√½,0] omet le changement monde, [0,1,0,0] omet le changement corps, [0,0,0,1] inverse l’ordre des facteurs et [0.5,0.5,0.5,0.5] confond l’ordre scalaire xdyn avec l’ordre Three.js.",
+      "En remplaçant les valeurs, (0,√½,√½,0)⊗(√½,0,0,√½)⊗(0,1,0,0)=(−1,0,0,0). La double couverture autorise ensuite la forme canonique opposée (1,0,0,0).",
+      "Numériquement, [1,0,0,0] et [−1,0,0,0] sont corrects. Les autres propositions isolent une erreur: changement monde ou corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l’ordre Three.js.",
     ],
     pitfalls: [
       "Refuser [−1,0,0,0] alors que q et −q ont la même action sur tout vecteur.",

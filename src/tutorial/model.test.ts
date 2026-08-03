@@ -29,7 +29,8 @@ describe("tutorial", () => {
   });
 
   test("clamps navigation to the tutorial bounds", () => {
-    expect(previousScreen(startTutorial()).screenIndex).toBe(0);
+    const firstScreen = startTutorial();
+    expect(previousScreen(firstScreen)).toEqual(firstScreen);
 
     const secondScreen = nextScreen(nextScreen(startTutorial()));
     expect(previousScreen(secondScreen).screenIndex).toBe(1);
@@ -39,6 +40,15 @@ describe("tutorial", () => {
       state = nextScreen(state);
     }
     expect(state.screenIndex).toBe(TUTORIAL_SCREENS.length - 1);
+    expect(nextScreen(state)).toEqual(state);
+  });
+
+  test("keeps every external source on HTTPS", () => {
+    for (const screen of TUTORIAL_SCREENS) {
+      for (const source of screen.sources) {
+        expect(source.url.startsWith("https://")).toBe(true);
+      }
+    }
   });
 
   test("skips and resumes without losing the in-memory step", () => {
