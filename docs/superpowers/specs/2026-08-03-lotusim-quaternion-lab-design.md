@@ -109,7 +109,9 @@ files:
 - `../LOTUSim/systems/physics_engine_interface/src/xdyn_websocket.cpp` — runtime
   conversion and wire order;
 - `../LOTUSim/systems/physics_engine_interface/test/test_ned_enu_conversions.cpp`
-  — known conversion cases.
+  — vector and round-trip cases. Its `IdentityMapsToIdentity` and
+  `NedHeadingBecomesOppositeEnuYaw` assertions predate the FRD/FLU body-frame
+  correction and must not be copied as attitude expectations.
 
 External references complement but do not override those project conventions:
 
@@ -171,7 +173,9 @@ The tutorial reuses the same laboratory and progressively reveals controls.
 
 Distinguish world and body frames, then compare NED/FRD with ENU/FLU. Axis
 labels include both the letter and semantic direction. Switching convention
-keeps the same physical orientation.
+keeps the same physical orientation but generally changes the quaternion
+components. In particular, an identity NED/FRD quaternion is not an identity
+ENU/FLU quaternion.
 
 ### 2. Axis-angle and quaternion
 
@@ -269,8 +273,9 @@ Pure math checks cover:
 - equivalence of `q` and `-q` as orientations;
 - NED/FRD to ENU/FLU vector and attitude conversion;
 - conversion round-trip;
-- the existing LOTUSim case where a `+90 degrees` xdyn heading becomes a
-  `-90 degrees` ENU yaw.
+- a `0 degrees` xdyn heading becoming a `+90 degrees` ENU yaw;
+- a `+90 degrees` xdyn heading becoming a `0 degrees` ENU yaw, following
+  `yaw_ENU = pi/2 - heading_NED`.
 
 Behavioral checks cover:
 
