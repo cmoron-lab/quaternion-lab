@@ -5,6 +5,7 @@ import type { EulerZYX, Quaternion, Vec3 } from "../math/quaternion";
 const INK = 0x082733;
 const HORIZON = 0x2ca6b8;
 const AMBER = 0xe9a23b;
+const LUMINOUS = 0xf7fbfa;
 const PORT = 0xd94b55;
 const STARBOARD = 0x218b68;
 
@@ -57,8 +58,36 @@ function createAxes(name: string, glyphs: readonly AxisGlyph[] = FLU_AXES): THRE
   return axes;
 }
 
-export const createWorldAxes = (convention: "NED" | "ENU"): THREE.Group =>
-  createAxes(`world-axes-${convention.toLowerCase()}`, convention === "NED" ? NED_AXES : ENU_AXES);
+export const createWorldAxes = (convention: "NED" | "ENU"): THREE.Group => {
+  const axes = createAxes(
+    `world-axes-${convention.toLowerCase()}`,
+    convention === "NED" ? NED_AXES : ENU_AXES,
+  );
+  // Both conventions draw North along renderer +Y.
+  const north = createLabelSprite("N", "north-label");
+  north.position.set(0, 1.55, 0);
+  axes.add(north);
+  return axes;
+};
+
+function createLabelSprite(text: string, name: string): THREE.Sprite {
+  const canvas = document.createElement("canvas");
+  canvas.width = 128;
+  canvas.height = 128;
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("Le canvas 2D n'est pas disponible.");
+  context.fillStyle = "#f7fbfa";
+  context.font = "700 88px Arial, sans-serif";
+  context.textAlign = "center";
+  context.textBaseline = "middle";
+  context.fillText(text, 64, 68);
+  const sprite = new THREE.Sprite(
+    new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false }),
+  );
+  sprite.name = name;
+  sprite.scale.setScalar(0.55);
+  return sprite;
+}
 
 export function createBoat(): THREE.Group {
   const boat = new THREE.Group();
@@ -170,7 +199,7 @@ export class LabScene {
     new THREE.Vector3(1, 0, 0),
     undefined,
     2.2,
-    AMBER,
+    LUMINOUS,
   );
   private readonly gimbalRings = new THREE.Group();
   private animation?: Animation;

@@ -14,6 +14,30 @@ describe("schematic scene boundary", () => {
       .toArray()
       .map((value) => Math.round(value));
 
+  // The label sprite draws on a DOM canvas, which bun's test runner lacks;
+  // stub just enough of it to exercise the scene's own logic.
+  const withCanvasStub = <T>(run: () => T): T => {
+    const previous = globalThis.document;
+    globalThis.document = {
+      createElement: () => ({
+        width: 0,
+        height: 0,
+        getContext: () => ({
+          fillStyle: "",
+          font: "",
+          textAlign: "",
+          textBaseline: "",
+          fillText: () => undefined,
+        }),
+      }),
+    } as unknown as Document;
+    try {
+      return run();
+    } finally {
+      globalThis.document = previous;
+    }
+  };
+
   test("adapts and normalizes scalar-first domain order for Three.js", () => {
     const q = toThreeQuaternion([2, 1, -2, 4]);
     expect([q.w, q.x, q.y, q.z]).toEqual([0.4, 0.2, -0.4, 0.8]);
@@ -52,10 +76,14 @@ describe("schematic scene boundary", () => {
 
   test("maps NED and ENU world glyphs into the ENU renderer", () => {
     const glyphs = (convention: "NED" | "ENU") =>
-      createWorldAxes(convention).children.map((axis) => ({
-        name: axis.name,
-        direction: directionOf(axis),
-      }));
+      withCanvasStub(() =>
+        createWorldAxes(convention)
+          .children.filter((child) => child instanceof THREE.ArrowHelper)
+          .map((axis) => ({
+            name: axis.name,
+            direction: directionOf(axis),
+          })),
+      );
 
     expect(glyphs("NED")).toEqual([
       { name: "NED X · North", direction: [0, 1, 0] },
@@ -67,6 +95,16 @@ describe("schematic scene boundary", () => {
       { name: "ENU Y · North", direction: [0, 1, 0] },
       { name: "ENU Z · Up", direction: [0, 0, 1] },
     ]);
+  });
+
+  test("marks the world north with a label", () => {
+    for (const convention of ["NED", "ENU"] as const) {
+      const north = withCanvasStub(() =>
+        createWorldAxes(convention).getObjectByName("north-label"),
+      );
+      expect(north).toBeDefined();
+      expect(north?.position.y).toBeGreaterThan(1.25);
+    }
   });
 
   test("disposes shared scene resources once", () => {
