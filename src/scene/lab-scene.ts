@@ -79,6 +79,26 @@ const setOpacity = (object: THREE.Object3D, opacity: number) => {
   });
 };
 
+export function disposeSceneResources(scene: THREE.Object3D): void {
+  const geometries = new Set<THREE.BufferGeometry>();
+  const materials = new Set<THREE.Material>();
+  scene.traverse((object) => {
+    const renderable = object as THREE.Object3D & {
+      geometry?: unknown;
+      material?: unknown;
+    };
+    if (renderable.geometry instanceof THREE.BufferGeometry) geometries.add(renderable.geometry);
+    const objectMaterials = Array.isArray(renderable.material)
+      ? renderable.material
+      : [renderable.material];
+    for (const material of objectMaterials) {
+      if (material instanceof THREE.Material) materials.add(material);
+    }
+  });
+  geometries.forEach((geometry) => geometry.dispose());
+  materials.forEach((material) => material.dispose());
+}
+
 export class LabScene {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
@@ -256,6 +276,7 @@ export class LabScene {
   dispose(): void {
     if (this.frame !== undefined) cancelAnimationFrame(this.frame);
     this.controls.dispose();
+    disposeSceneResources(this.scene);
     this.renderer.dispose();
     this.renderer.domElement.remove();
   }

@@ -31,6 +31,7 @@ try {
   scene.setOrientation([1, 0, 0, 0]);
   resetButton.addEventListener("click", () => scene.resetCamera());
   new ResizeObserver(() => scene.resize()).observe(canvasContainer);
-} catch {
+} catch (error) {
+  console.error("La scène 3D n'a pas pu démarrer.", error);
   canvasContainer.textContent = "La scène 3D n'a pas pu démarrer sur ce navigateur.";
 }
