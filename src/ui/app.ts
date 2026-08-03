@@ -329,9 +329,9 @@ export function mountLabApp(root: HTMLElement): void {
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
         <h2 tabindex="-1">${screen.title}</h2>
       </header>
+      <p class="lesson-panel__observe"><strong>Manipulation</strong>${screen.tryIt}</p>
       <p class="lesson-panel__summary">${screen.summary}</p>
-      <p class="lesson-panel__observe"><strong>À observer</strong>${screen.observe}</p>
-      ${screen.formula ? `<code class="lesson-panel__formula">${screen.formula}</code>` : ""}
+      <p class="lesson-panel__observe"><strong>À retenir</strong>${screen.takeaway}</p>
       ${screenSpecificMarkup(screen)}
       <div class="animation-controls" role="group" aria-label="Animation de la leçon">
         <button type="button" data-lesson-action="replay"${scene.canReplayAnimation() ? "" : " disabled"}>Rejouer</button>

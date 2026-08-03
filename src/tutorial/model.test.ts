@@ -23,7 +23,9 @@ describe("tutorial", () => {
       "challenge",
     ]);
     for (const screen of TUTORIAL_SCREENS) {
+      expect(screen.tryIt.length).toBeGreaterThan(40);
       expect(screen.summary.length).toBeGreaterThan(40);
+      expect(screen.takeaway.length).toBeGreaterThan(20);
       expect(screen.details.length).toBeGreaterThan(1);
       expect(screen.sources.length).toBeGreaterThan(0);
     }

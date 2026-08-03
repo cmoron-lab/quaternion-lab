@@ -7,9 +7,9 @@ export type TutorialScreen = Readonly<{
     | "lotusim-xdyn"
     | "challenge";
   title: string;
+  tryIt: string;
   summary: string;
-  observe: string;
-  formula?: string;
+  takeaway: string;
   details: readonly [definition: string, derivation: string, example: string];
   pitfalls: readonly string[];
   sources: readonly Readonly<{ label: string; url: string }>[];
@@ -18,15 +18,17 @@ export type TutorialScreen = Readonly<{
 export const TUTORIAL_SCREENS = [
   {
     id: "frames",
-    title: "Orientation : scène et bateau",
+    title: "Repères : monde ENU, corps FLU",
+    tryIt:
+      "Cliquez sur Rejouer et observez les deux repères : le grand repère du monde reste fixe pendant que le repère du bateau tourne avec lui. Repérez quels axes suivent le bateau et quels axes ne bougent pas.",
     summary:
-      "Une orientation indique comment les directions propres au bateau — avant, gauche et haut — sont tournées par rapport aux directions fixes de la scène. Un quaternion unitaire encode cette rotation avec quatre nombres liés.",
-    observe:
-      "Cliquez sur Rejouer : le grand repère reste fixe dans la scène, tandis que le petit repère tourne avec le bateau. Aucun réglage n’est nécessaire à cette étape.",
+      "Vous venez de voir deux repères. Le repère monde ENU (East–North–Up : X vers l'est, Y vers le nord, Z vers le haut) est fixe. Le repère corps FLU (Forward–Left–Up : X vers l'avant, Y vers la gauche, Z vers le haut) est solidaire du bateau. L'orientation du bateau est la rotation qui fait passer du monde au corps — et un quaternion est l'outil qui décrit cette rotation avec quatre nombres liés.",
+    takeaway:
+      "Orientation ≠ position : pendant toute la démonstration, le bateau n'a pas changé de place.",
     details: [
-      "Le repère de la scène est fixe : ses trois directions servent de référence. Le repère du bateau lui est attaché : son axe avant, son axe gauche et son axe haut tournent avec lui. L’orientation est la rotation qui fait passer du second au premier.",
-      "Pour un quaternion unitaire Hamilton actif corps-vers-scène, un vecteur du bateau v devient v′ = q ⊗ (0,v) ⊗ q*, où q* est le conjugué et donc l’inverse de q.",
-      "Au départ, le bateau pointe vers l’Est. La démonstration le tourne vers le Nord : sa position ne change pas, seuls son orientation et les axes qui lui sont attachés tournent.",
+      "Le repère monde ENU est fixe : ses trois directions servent de référence. Le repère corps FLU est attaché au bateau : ses axes Forward, Left et Up tournent avec lui. L'orientation est la rotation qui fait passer du repère corps au repère monde.",
+      "Pour un quaternion unitaire Hamilton actif corps-vers-monde, un vecteur du bateau v devient v′ = q ⊗ (0,v) ⊗ q*, où q* est le conjugué — et donc l'inverse — de q.",
+      "Au départ, le bateau pointe vers l'est (X du monde). La démonstration le tourne vers le nord : sa position ne change pas, seule son orientation et les axes qui lui sont attachés tournent.",
     ],
     pitfalls: [
       "Lire w, x, y et z comme quatre angles indépendants.",
@@ -41,14 +43,15 @@ export const TUTORIAL_SCREENS = [
   },
   {
     id: "axis-angle",
-    title: "Angle–axe et quaternion unitaire",
+    title: "Axis-angle : un axe, un angle",
+    tryIt:
+      "Faites glisser θ jusqu'à 90° et observez l'axe lumineux : la partie vectorielle du quaternion reste alignée avec lui. Cliquez ensuite sur « Afficher −q » : l'attitude du bateau ne change pas.",
     summary:
-      "Une rotation est définie par un axe unitaire u et un angle θ; le quaternion place le demi-angle entre sa partie scalaire et sa partie vectorielle.",
-    observe:
-      "Faites varier θ et l’axe lumineux : la partie vectorielle reste colinéaire à u tandis que sa norme suit sin(θ/2).",
-    formula: "q = (cos(θ/2), u sin(θ/2)), avec ‖u‖ = 1",
+      "Toute rotation peut se décrire par un axe et un angle : c'est la représentation axis-angle. Le quaternion range ces deux informations dans quatre nombres — une partie scalaire qui dépend de l'angle, une partie vectorielle alignée avec l'axe. Et vous venez de le vérifier : q et −q donnent exactement la même attitude.",
+    takeaway:
+      "q et −q décrivent la même orientation ; ne comparez jamais deux quaternions composante par composante sans y penser.",
     details: [
-      "Si u=(uₓ,uᵧ,u_z) est unitaire, alors q=(cos(θ/2), uₓsin(θ/2), uᵧsin(θ/2), u_zsin(θ/2)). Sa norme au carré vaut cos²(θ/2)+‖u‖²sin²(θ/2)=1.",
+      "q = (cos(θ/2), u sin(θ/2)), avec ‖u‖ = 1. Si u=(uₓ,uᵧ,u_z), alors q=(cos(θ/2), uₓsin(θ/2), uᵧsin(θ/2), u_zsin(θ/2)) : sa norme au carré vaut cos²(θ/2)+‖u‖²sin²(θ/2)=1. Un quaternion d'orientation est toujours unitaire.",
       "Le demi-angle vient de l’action bilatérale q ⊗ (0, v) ⊗ q*: les deux facteurs quaternion conjugués produisent sur le vecteur la rotation physique d’angle θ. C’est aussi l’écriture exponentielle q=exp((0,u)θ/2).",
       "Ici u=(0,0,1) et θ=60°, donc q=(cos 30°,0,0,sin 30°)=(√3/2,0,0,1/2). Son opposé (−√3/2,0,0,−1/2) produit la même attitude, car les deux signes s’annulent dans q ⊗ (0,v) ⊗ q*.",
     ],
@@ -69,14 +72,15 @@ export const TUTORIAL_SCREENS = [
   },
   {
     id: "composition",
-    title: "Composer des rotations",
+    title: "Composer des rotations : l'ordre compte",
+    tryIt:
+      "Cliquez sur « Permuter l'ordre » et observez le bateau : appliquer A puis B ne donne pas la même attitude que B puis A. Le bateau fantôme marque la fin de la première rotation.",
     summary:
-      "Avec des rotations actives corps-vers-monde, appliquer A puis B donne q_B ⊗ q_A; inverser les facteurs inverse donc l’ordre des actions.",
-    observe:
-      "Regardez le bateau fantôme après A, puis permutez A et B : l’attitude finale change dès que les rotations ne commutent pas.",
-    formula: "v′ = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*",
+      "Vous venez de voir que les rotations ne commutent pas : roulis de 90° puis lacet de 90° ne donnent pas la même attitude que lacet puis roulis. La composition s'écrit avec le produit de quaternions : appliquer A puis B donne q_B ⊗ q_A — la première rotation appliquée se lit à droite.",
+    takeaway:
+      "q_B ⊗ q_A signifie « d'abord A, puis B » : l'ordre de lecture est l'inverse de l'ordre chronologique.",
     details: [
-      "Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q=q_B⊗q_A: la rotation la plus proche du vecteur agit en premier.",
+      "v′ = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*. Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q=q_B⊗q_A : la rotation la plus proche du vecteur agit en premier.",
       "Avec A=roulis +90° et B=lacet +90°, q_A=(√½,√½,0,0) et q_B=(√½,0,0,√½). Ainsi q_B⊗(q_A⊗v⊗q_A*)⊗q_B*=(q_B⊗q_A)⊗v⊗(q_B⊗q_A)*.",
       "Dans la démo de référence, q_B⊗q_A=(1/2,1/2,1/2,1/2). En permutant, q_A⊗q_B=(1/2,1/2,−1/2,1/2): le signe de y change et le bateau prend une autre attitude.",
     ],
@@ -97,14 +101,15 @@ export const TUTORIAL_SCREENS = [
   },
   {
     id: "gimbal-lock",
-    title: "Angles d’Euler et verrouillage de cardan",
+    title: "Euler angles et gimbal lock",
+    tryIt:
+      "Cliquez sur « Déclencher 90° » : les anneaux de lacet et de roulis s'alignent. Faites ensuite glisser le roulis ou le lacet : plusieurs couples de valeurs donnent exactement la même attitude, et la décomposition affichée saute à sa forme canonique.",
     summary:
-      "Dans la convention intrinsèque Z-Y′-X″, un tangage de ±90° aligne les premier et troisième axes et rend lacet et roulis indissociables.",
-    observe:
-      "Placez le tangage à +90° puis modifiez lacet et roulis : plusieurs couples de valeurs conservent exactement la même attitude.",
-    formula: "R = R_Z(lacet) R_Y(tangage) R_X(roulis)",
+      "Vous venez de voir le gimbal lock (verrouillage de cardan) : à ±90° de tangage, les axes de lacet et de roulis s'alignent et les deux angles ne sont plus indépendants. C'est une singularité des Euler angles — une représentation en trois angles — pas de l'orientation elle-même : le quaternion, lui, décrit toujours l'attitude sans singularité.",
+    takeaway:
+      "Le gimbal lock est un défaut des Euler angles, pas du quaternion.",
     details: [
-      "La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
+      "R = R_Z(lacet) R_Y(tangage) R_X(roulis). La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
       "Roulis 20°, tangage 90° et lacet 35° est une décomposition valide: les anneaux de lacet et de roulis s’alignent et la matrice ne conserve que leur différence 35°−20°=15°. Pour un affichage déterministe, le laboratoire choisit la représentation canonique équivalente roulis 0°, tangage 90°, lacet 15°.",
       "Plusieurs triplets d’Euler donnent donc la même rotation: c’est une singularité de représentation, pas une disparition du mouvement. À ce point, l'orientation physique existe toujours et le quaternion unitaire la décrit sans singularité interne.",
     ],
@@ -125,15 +130,15 @@ export const TUTORIAL_SCREENS = [
   },
   {
     id: "lotusim-xdyn",
-    title: "Conversion LOTUSim / xdyn",
+    title: "Conversion xdyn ↔ LOTUSim : NED/FRD vers ENU/FLU",
+    tryIt:
+      "Cliquez sur « Monde » puis sur « Corps » pour animer séparément les deux changements de base, avant d'afficher la conversion complète. Observez les deux écritures de la même attitude physique.",
     summary:
-      "Passer de xdyn NED/FRD à LOTUSim/Gazebo ENU/FLU exige deux changements de base, l’un côté monde et l’autre côté corps.",
-    observe:
-      "Animez séparément l’échange du monde NED vers ENU puis celui du corps FLU vers FRD, avant d’afficher leur produit complet.",
-    formula:
-      "q_ENU_FLU = Q_NED_TO_ENU ⊗ q_NED_FRD ⊗ Q_FLU_TO_FRD",
+      "xdyn parle NED/FRD (North–East–Down / Forward–Right–Down) ; LOTUSim et Gazebo parlent ENU/FLU. Passer de l'un à l'autre exige deux changements de base — un côté monde, un côté corps — et, à la frontière Three.js, un simple réordonnancement des composantes de (w,x,y,z) vers (x,y,z,w).",
+    takeaway:
+      "Deux changements de base (monde et corps) plus un réordonnancement : oublier l'un des trois est l'erreur classique.",
     details: [
-      "Les quaternions de changement sont Q_NED_TO_ENU=(0,1/√2,1/√2,0) et Q_FLU_TO_FRD=(0,1,0,0). Le facteur de gauche change les coordonnées du repère monde; celui de droite change les coordonnées du repère corps. Omettre l’un des deux ne conserve pas l’attitude complète.",
+      "q_ENU_FLU = Q_NED_TO_ENU ⊗ q_NED_FRD ⊗ Q_FLU_TO_FRD, avec Q_NED_TO_ENU=(0,1/√2,1/√2,0) et Q_FLU_TO_FRD=(0,1,0,0). Le facteur de gauche change les coordonnées du repère monde ; celui de droite change celles du repère corps. Omettre l'un des deux ne conserve pas l'attitude complète.",
       "xdyn transmet des quaternions Hamilton corps-vers-monde dans l’ordre scalaire d’abord (qr,qi,qj,qk)=(w,x,y,z). LOTUSim/Gazebo utilise ENU/FLU; à la seule frontière Three.js, les mêmes composantes sont réordonnées en (x,y,z,w). Ce réordonnancement n’est pas une rotation.",
       "Cap xdyn 0°: q_NED_FRD=(1,0,0,0), donc q_ENU_FLU=(1/√2,0,0,1/√2), soit un lacet ENU de +90°. Cap xdyn +90°: q_NED_FRD=(1/√2,0,0,1/√2), et le produit vaut une identité à un signe près, soit un lacet ENU de 0°.",
     ],
@@ -154,15 +159,15 @@ export const TUTORIAL_SCREENS = [
   },
   {
     id: "challenge",
-    title: "Défi diagnostic",
+    title: "Défi : diagnostic de convention",
+    tryIt:
+      "Choisissez l'attitude ENU/FLU équivalente au quaternion xdyn [√½, 0, 0, √½]. Chaque mauvaise proposition correspond à une erreur de convention précise : lisez le feedback après chaque essai.",
     summary:
-      "Trouvez la représentation ENU/FLU du quaternion xdyn NED/FRD [√½,0,0,√½], puis reliez chaque mauvaise proposition à son erreur de convention.",
-    observe:
-      "Choisissez l’attitude LOTUSim équivalente; l’identité [1,0,0,0] et son opposé [−1,0,0,0] sont toutes deux correctes.",
-    formula:
-      "Q_NED_TO_ENU ⊗ [√½,0,0,√½] ⊗ Q_FLU_TO_FRD = [−1,0,0,0] ≡ [1,0,0,0]",
+      "Les propositions [1,0,0,0] et [−1,0,0,0] sont toutes deux correctes — la double couverture, vue à l'étape 2. Chaque distracteur isole une erreur : changement monde omis, changement corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l'ordre Three.js.",
+    takeaway:
+      "En cas de doute sur une convention, refaites le produit dans l'ordre annoncé plutôt que de juger à la proximité des composantes.",
     details: [
-      "L’entrée correspond à un cap NED de +90°. Après les changements monde et corps, le bateau pointe vers +x ENU avec ses axes FLU alignés: l’orientation ENU/FLU est l’identité, dont le quaternion opposé représente exactement la même rotation.",
+      "Q_NED_TO_ENU ⊗ [√½,0,0,√½] ⊗ Q_FLU_TO_FRD = [−1,0,0,0] ≡ [1,0,0,0]. L'entrée correspond à un cap NED de +90° ; après les changements monde et corps, le bateau pointe vers +X ENU avec ses axes FLU alignés : l'orientation ENU/FLU est l'identité, dont le quaternion opposé représente exactement la même rotation.",
       "En remplaçant les valeurs, (0,√½,√½,0)⊗(√½,0,0,√½)⊗(0,1,0,0)=(−1,0,0,0). La double couverture autorise ensuite la forme canonique opposée (1,0,0,0).",
       "Numériquement, [1,0,0,0] et [−1,0,0,0] sont corrects. Les autres propositions isolent une erreur: changement monde ou corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l’ordre Three.js.",
     ],
