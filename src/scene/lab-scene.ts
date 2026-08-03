@@ -8,19 +8,57 @@ const AMBER = 0xe9a23b;
 const PORT = 0xd94b55;
 const STARBOARD = 0x218b68;
 
+type AxisGlyph = Readonly<{
+  name: string;
+  direction: Vec3;
+  color: THREE.ColorRepresentation;
+}>;
+
+const FLU_AXES: readonly AxisGlyph[] = [
+  { name: "FLU X · Avant", direction: [1, 0, 0], color: PORT },
+  { name: "FLU Y · Gauche", direction: [0, 1, 0], color: STARBOARD },
+  { name: "FLU Z · Haut", direction: [0, 0, 1], color: AMBER },
+];
+
+const FRD_AXES: readonly AxisGlyph[] = [
+  { name: "FRD X · Avant", direction: [1, 0, 0], color: PORT },
+  { name: "FRD Y · Droite", direction: [0, -1, 0], color: STARBOARD },
+  { name: "FRD Z · Bas", direction: [0, 0, -1], color: AMBER },
+];
+
+const ENU_AXES: readonly AxisGlyph[] = [
+  { name: "ENU X · Est", direction: [1, 0, 0], color: PORT },
+  { name: "ENU Y · Nord", direction: [0, 1, 0], color: STARBOARD },
+  { name: "ENU Z · Haut", direction: [0, 0, 1], color: AMBER },
+];
+
+const NED_AXES: readonly AxisGlyph[] = [
+  { name: "NED X · Nord", direction: [0, 1, 0], color: PORT },
+  { name: "NED Y · Est", direction: [1, 0, 0], color: STARBOARD },
+  { name: "NED Z · Bas", direction: [0, 0, -1], color: AMBER },
+];
+
 export const toThreeQuaternion = ([w, x, y, z]: Quaternion) =>
   new THREE.Quaternion(x, y, z, w).normalize();
 
-function createAxes(name: string): THREE.Group {
+function createAxes(name: string, glyphs: readonly AxisGlyph[] = FLU_AXES): THREE.Group {
   const axes = new THREE.Group();
   axes.name = name;
-  axes.add(
-    new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), undefined, 1.25, PORT),
-    new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), undefined, 1.25, STARBOARD),
-    new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), undefined, 1.25, AMBER),
-  );
+  for (const glyph of glyphs) {
+    const arrow = new THREE.ArrowHelper(
+      new THREE.Vector3(...glyph.direction),
+      undefined,
+      1.25,
+      glyph.color,
+    );
+    arrow.name = glyph.name;
+    axes.add(arrow);
+  }
   return axes;
 }
+
+export const createWorldAxes = (convention: "NED" | "ENU"): THREE.Group =>
+  createAxes(`world-axes-${convention.toLowerCase()}`, convention === "NED" ? NED_AXES : ENU_AXES);
 
 export function createBoat(): THREE.Group {
   const boat = new THREE.Group();
@@ -55,15 +93,25 @@ export function createBoat(): THREE.Group {
     boat.add(marker);
   }
 
-  const axes = createAxes("body-axes");
+  const axes = new THREE.Group();
+  axes.name = "body-axes";
   axes.position.set(0, 0, 0.35);
+  const fluAxes = createAxes("body-axes-flu", FLU_AXES);
+  const frdAxes = createAxes("body-axes-frd", FRD_AXES);
+  frdAxes.visible = false;
+  axes.add(fluAxes, frdAxes);
   boat.add(axes);
   return boat;
 }
 
-type Animation = {
+type AnimationTrack = {
+  object: THREE.Object3D;
   start: THREE.Quaternion;
   target: THREE.Quaternion;
+};
+
+type Animation = {
+  tracks: readonly AnimationTrack[];
   durationMs: number;
   elapsedMs: number;
 };
@@ -104,11 +152,14 @@ export class LabScene {
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.1, 100);
   private readonly renderer: THREE.WebGLRenderer;
   private readonly controls: OrbitControls;
+  private readonly comparisonLabels = document.createElement("div");
   private readonly boat = createBoat();
   private readonly ghost = createBoat();
   private readonly comparisonLeft = createBoat();
   private readonly comparisonRight = createBoat();
-  private readonly worldAxes = createAxes("world-axes");
+  private readonly worldAxes = createWorldAxes("ENU");
+  private readonly comparisonWorldNed = createWorldAxes("NED");
+  private readonly comparisonWorldEnu = createWorldAxes("ENU");
   private readonly rotationAxis = new THREE.ArrowHelper(
     new THREE.Vector3(1, 0, 0),
     undefined,
@@ -117,7 +168,7 @@ export class LabScene {
   );
   private readonly gimbalRings = new THREE.Group();
   private animation?: Animation;
-  private savedAnimation?: Pick<Animation, "start" | "target" | "durationMs">;
+  private savedAnimation?: Pick<Animation, "tracks" | "durationMs">;
   private animationClock?: number;
   private animationSpeed = 1;
   private paused = false;
@@ -127,7 +178,18 @@ export class LabScene {
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setClearColor(0x123d4a);
-    container.replaceChildren(this.renderer.domElement);
+    this.comparisonLabels.className = "scene-comparison-labels";
+    for (const [convention, label] of [
+      ["NED/FRD", "xdyn · monde NED / corps FRD"],
+      ["ENU/FLU", "LOTUSim · monde ENU / corps FLU"],
+    ] as const) {
+      const item = document.createElement("span");
+      item.dataset.convention = convention;
+      item.textContent = label;
+      this.comparisonLabels.append(item);
+    }
+    this.comparisonLabels.hidden = true;
+    container.replaceChildren(this.renderer.domElement, this.comparisonLabels);
 
     this.camera.up.set(0, 0, 1);
     this.resetCamera();
@@ -145,8 +207,18 @@ export class LabScene {
       new THREE.MeshStandardMaterial({ color: 0x174f5c, roughness: 0.82, metalness: 0.08 }),
     );
     water.position.z = -0.52;
-    this.scene.add(water, this.worldAxes, this.boat);
+    this.scene.add(
+      water,
+      this.worldAxes,
+      this.comparisonWorldNed,
+      this.comparisonWorldEnu,
+      this.boat,
+    );
     this.worldAxes.position.set(-3.3, -2.6, -0.48);
+    this.comparisonWorldNed.position.set(-2.7, -2, -0.48);
+    this.comparisonWorldEnu.position.set(1.3, -2, -0.48);
+    this.comparisonWorldNed.visible = false;
+    this.comparisonWorldEnu.visible = false;
 
     this.ghost.name = "ghost";
     setOpacity(this.ghost, 0.24);
@@ -195,21 +267,18 @@ export class LabScene {
   }
 
   animateOrientation(q: Quaternion, durationMs = 900): void {
-    const start = this.boat.quaternion.clone();
-    const target = toThreeQuaternion(q);
-    this.savedAnimation = {
-      start: start.clone(),
-      target: target.clone(),
-      durationMs: Number.isFinite(durationMs) && durationMs > 0 ? durationMs : 900,
-    };
-    if (!Number.isFinite(durationMs) || durationMs <= 0) {
-      this.boat.quaternion.copy(target);
-      this.animation = undefined;
-      this.animationClock = undefined;
-      return;
-    }
-    this.animation = { start, target, durationMs, elapsedMs: 0 };
-    this.animationClock = undefined;
+    this.animateObjects([[this.boat, q]], durationMs);
+  }
+
+  animateComparison(left: Quaternion, right: Quaternion, durationMs = 900): void {
+    this.showComparison(true);
+    this.animateObjects(
+      [
+        [this.comparisonLeft, left],
+        [this.comparisonRight, right],
+      ],
+      durationMs,
+    );
   }
 
   pauseAnimation(paused: boolean): void {
@@ -223,16 +292,26 @@ export class LabScene {
 
   replayAnimation(animate = true): void {
     if (!this.savedAnimation) return;
-    const { start, target, durationMs } = this.savedAnimation;
+    const { tracks, durationMs } = this.savedAnimation;
     if (!animate) {
-      this.boat.quaternion.copy(target);
+      for (const track of tracks) track.object.quaternion.copy(track.target);
       this.animation = undefined;
       this.animationClock = undefined;
+      this.syncComparisonState();
       return;
     }
-    this.boat.quaternion.copy(start);
-    this.animation = { start: start.clone(), target: target.clone(), durationMs, elapsedMs: 0 };
+    for (const track of tracks) track.object.quaternion.copy(track.start);
+    this.animation = {
+      tracks: tracks.map((track) => ({
+        object: track.object,
+        start: track.start.clone(),
+        target: track.target.clone(),
+      })),
+      durationMs,
+      elapsedMs: 0,
+    };
     this.animationClock = undefined;
+    this.syncComparisonState();
   }
 
   setAnimationSpeed(speed: 0.5 | 1): void {
@@ -273,22 +352,24 @@ export class LabScene {
 
   setComparison(left: Quaternion | null, right: Quaternion | null): void {
     const comparing = left !== null && right !== null;
-    this.boat.visible = !comparing;
-    this.comparisonLeft.visible = comparing;
-    this.comparisonRight.visible = comparing;
+    this.showComparison(comparing);
     if (left) this.comparisonLeft.quaternion.copy(toThreeQuaternion(left));
     if (right) this.comparisonRight.quaternion.copy(toThreeQuaternion(right));
+    this.syncComparisonState();
   }
 
   setComparisonPhase(phase: "none" | "world" | "body" | "full"): void {
     const showWorld = phase === "world" || phase === "full";
     const showBody = phase === "body" || phase === "full";
-    this.worldAxes.visible = showWorld;
+    const comparing = this.comparisonLeft.visible && this.comparisonRight.visible;
+    this.worldAxes.visible = !comparing && showWorld;
+    this.comparisonWorldNed.visible = comparing && showWorld;
+    this.comparisonWorldEnu.visible = comparing && showWorld;
     for (const boat of [this.boat, this.comparisonLeft, this.comparisonRight]) {
       const axes = boat.getObjectByName("body-axes");
       if (!axes) continue;
       axes.visible = showBody;
-      setOpacity(axes, phase === "full" ? 1 : 0.72);
+      setOpacity(axes, 1);
     }
   }
 
@@ -312,6 +393,7 @@ export class LabScene {
     disposeSceneResources(this.scene);
     this.renderer.dispose();
     this.renderer.domElement.remove();
+    this.comparisonLabels.remove();
   }
 
   private readonly render = (now: number) => {
@@ -321,10 +403,68 @@ export class LabScene {
       this.animation.elapsedMs += (now - last) * this.animationSpeed;
       this.animationClock = now;
       const progress = Math.min(this.animation.elapsedMs / this.animation.durationMs, 1);
-      this.boat.quaternion.slerpQuaternions(this.animation.start, this.animation.target, progress);
+      for (const track of this.animation.tracks) {
+        track.object.quaternion.slerpQuaternions(track.start, track.target, progress);
+      }
+      this.syncComparisonState();
       if (progress === 1) this.animation = undefined;
     }
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   };
+
+  private animateObjects(
+    targets: readonly (readonly [object: THREE.Object3D, target: Quaternion])[],
+    durationMs: number,
+  ): void {
+    const tracks = targets.map(([object, target]) => ({
+      object,
+      start: object.quaternion.clone(),
+      target: toThreeQuaternion(target),
+    }));
+    const replayDuration = Number.isFinite(durationMs) && durationMs > 0 ? durationMs : 900;
+    this.savedAnimation = {
+      tracks: tracks.map((track) => ({
+        object: track.object,
+        start: track.start.clone(),
+        target: track.target.clone(),
+      })),
+      durationMs: replayDuration,
+    };
+    if (!Number.isFinite(durationMs) || durationMs <= 0) {
+      for (const track of tracks) track.object.quaternion.copy(track.target);
+      this.animation = undefined;
+      this.animationClock = undefined;
+      this.syncComparisonState();
+      return;
+    }
+    this.animation = { tracks, durationMs, elapsedMs: 0 };
+    this.animationClock = undefined;
+  }
+
+  private showComparison(comparing: boolean): void {
+    this.boat.visible = !comparing;
+    this.comparisonLeft.visible = comparing;
+    this.comparisonRight.visible = comparing;
+    this.comparisonLabels.hidden = !comparing;
+    const leftFlu = this.comparisonLeft.getObjectByName("body-axes-flu");
+    const leftFrd = this.comparisonLeft.getObjectByName("body-axes-frd");
+    const rightFlu = this.comparisonRight.getObjectByName("body-axes-flu");
+    const rightFrd = this.comparisonRight.getObjectByName("body-axes-frd");
+    if (leftFlu) leftFlu.visible = false;
+    if (leftFrd) leftFrd.visible = true;
+    if (rightFlu) rightFlu.visible = true;
+    if (rightFrd) rightFrd.visible = false;
+    this.setComparisonPhase("full");
+    this.syncComparisonState();
+  }
+
+  private syncComparisonState(): void {
+    [this.comparisonLeft, this.comparisonRight].forEach((boat, index) => {
+      const label = this.comparisonLabels.children[index] as HTMLElement | undefined;
+      if (!label) return;
+      const { w, x, y, z } = boat.quaternion;
+      label.dataset.quaternion = [w, x, y, z].map((value) => value.toFixed(6)).join(",");
+    });
+  }
 }

@@ -95,6 +95,18 @@ describe("scalar-first Hamilton quaternions", () => {
     });
   }
 
+  for (const pitch of [89.999, -89.999].map((degrees) => (degrees * Math.PI) / 180)) {
+    test(`keeps ${pitch > 0 ? "+" : "-"}89.999 degrees outside the ZYX singular branch`, () => {
+      const sourceEuler = { roll: 0.31, pitch, yaw: -0.47 };
+      const source = fromEulerZYX(sourceEuler);
+      const extracted = toEulerZYX(source);
+
+      expect(extracted.gimbalLocked).toBe(false);
+      expect(extracted.pitch).toBeCloseTo(pitch, 10);
+      expect(sameOrientation(fromEulerZYX(extracted), source)).toBe(true);
+    });
+  }
+
   test("treats q and -q as the same orientation", () => {
     const q = canonicalize([0.5, 0.5, 0.5, 0.5]);
     const negative = q.map((value) => -value) as [number, number, number, number];

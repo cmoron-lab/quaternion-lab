@@ -119,7 +119,7 @@ External references complement but do not override those project conventions:
 - [ROS 2 — Quaternion fundamentals](https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html);
 - [Three.js — Quaternion](https://threejs.org/docs/pages/Quaternion.html);
 - [SciPy — Rotation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html);
-- [Solà — Why and How to Avoid the Flipped Quaternion Multiplication](https://arxiv.org/abs/1801.07478).
+- [Sommer et al. — Why and How to Avoid the Flipped Quaternion Multiplication](https://arxiv.org/abs/1801.07478).
 
 ## Architecture
 

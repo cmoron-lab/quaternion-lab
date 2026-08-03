@@ -79,7 +79,7 @@ export const TUTORIAL_SCREENS = [
     details: [
       "Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q=q_B⊗q_A: la rotation la plus proche du vecteur agit en premier.",
       "Avec A=roulis +90° et B=lacet +90°, q_A=(√½,√½,0,0) et q_B=(√½,0,0,√½). Ainsi q_B⊗(q_A⊗v⊗q_A*)⊗q_B*=(q_B⊗q_A)⊗v⊗(q_B⊗q_A)*.",
-      "Le produit courant vaut q_B⊗q_A=(1/2,1/2,1/2,1/2). En permutant, q_A⊗q_B=(1/2,1/2,−1/2,1/2): le signe de y change et le bateau prend une autre attitude.",
+      "Dans la démo de référence, q_B⊗q_A=(1/2,1/2,1/2,1/2). En permutant, q_A⊗q_B=(1/2,1/2,−1/2,1/2): le signe de y change et le bateau prend une autre attitude.",
     ],
     pitfalls: [
       "Lire le produit de gauche à droite comme une liste chronologique.",

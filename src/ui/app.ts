@@ -48,6 +48,7 @@ const presetSnapshot = (preset: Preset): OrientationSnapshot => {
 
 const quaternionLabel = (quaternion: Quaternion): string => {
   const component = (value: number) => {
+    if (Math.abs(value) < 5e-4) return "0";
     if (Math.abs(Math.abs(value) - Math.SQRT1_2) < 1e-12) {
       return value < 0 ? "−√½" : "√½";
     }
@@ -57,6 +58,12 @@ const quaternionLabel = (quaternion: Quaternion): string => {
 };
 
 const radians = (value: number): number => (value * Math.PI) / 180;
+const degreesLabel = (value: number): string => {
+  const degrees = (value * 180) / Math.PI;
+  return `${Math.abs(degrees) < 0.05 ? "0.0" : degrees.toFixed(1)}°`;
+};
+const axisLabel = (axis: readonly number[]): string =>
+  `(${axis.map((value) => (Math.abs(value) < 5e-4 ? "0" : value.toFixed(3))).join(", ")})`;
 
 export function mountLabApp(root: HTMLElement): void {
   const container = byId<HTMLElement>(root, "scene-container");
@@ -65,6 +72,7 @@ export function mountLabApp(root: HTMLElement): void {
   const gimbalWarning = byId<HTMLElement>(root, "gimbal-warning");
   const resetCamera = byId<HTMLButtonElement>(root, "reset-camera");
   const sandbox = byId<HTMLElement>(root, "sandbox");
+  const sandboxTitle = byId<HTMLElement>(root, "sandbox-title");
   const lesson = byId<HTMLElement>(root, "lesson-panel");
   const challengeAnnouncer = document.createElement("p");
   challengeAnnouncer.className = "visually-hidden";
@@ -146,6 +154,35 @@ export function mountLabApp(root: HTMLElement): void {
       : { intermediate: a, result: multiply(b, a) };
   };
 
+  const applyCurrentTeachingVisuals = (screen: TutorialScreen, animateComparison = false) => {
+    switch (screen.id) {
+      case "axis-angle":
+        scene.setRotationAxis(snapshot.axisAngle.axis);
+        break;
+      case "composition":
+        scene.setGhostOrientation(composition().intermediate);
+        break;
+      case "gimbal-lock":
+        scene.setGimbalAngles(snapshot.eulerEnu);
+        break;
+      case "lotusim-xdyn":
+        if (animateComparison) {
+          scene.animateComparison(
+            snapshot.enuFlu,
+            snapshot.enuFlu,
+            reducedMotion.matches ? 0 : 900,
+          );
+        } else {
+          scene.setComparison(snapshot.enuFlu, snapshot.enuFlu);
+        }
+        scene.setComparisonPhase(comparisonPhase);
+        break;
+      case "frames":
+      case "challenge":
+        break;
+    }
+  };
+
   const applyScreenDemo = (screen: TutorialScreen, animate = true) => {
     resetAnimation();
     resetTeachingScene();
@@ -154,7 +191,6 @@ export function mountLabApp(root: HTMLElement): void {
         renderSnapshot(snapshotFromNed([1, 0, 0, 0]), null, animate);
         break;
       case "axis-angle":
-        scene.setRotationAxis([0, 0, 1]);
         renderSnapshot(
           snapshotFromEnu(fromAxisAngle({ axis: [0, 0, 1], angle: Math.PI / 3 })),
           null,
@@ -162,9 +198,8 @@ export function mountLabApp(root: HTMLElement): void {
         );
         break;
       case "composition": {
-        const { intermediate, result } = composition();
+        const { result } = composition();
         renderSnapshot(snapshotFromEnu(result), null, animate);
-        scene.setGhostOrientation(intermediate);
         break;
       }
       case "gimbal-lock": {
@@ -174,47 +209,49 @@ export function mountLabApp(root: HTMLElement): void {
           yaw: radians(35),
         };
         renderSnapshot(snapshotFromEnu(fromEulerZYX(euler)), null, animate);
-        scene.setGimbalAngles(euler);
         break;
       }
       case "lotusim-xdyn": {
         const converted = snapshotFromNed([1, 0, 0, 0]);
-        renderSnapshot(converted, null, animate);
-        scene.setComparison(converted.enuFlu, converted.enuFlu);
-        scene.setComparisonPhase(comparisonPhase);
+        renderSnapshot(converted);
         break;
       }
       case "challenge":
         renderSnapshot(snapshotFromNed([Math.SQRT1_2, 0, 0, Math.SQRT1_2]), null, animate);
         break;
     }
+    applyCurrentTeachingVisuals(screen, screen.id === "lotusim-xdyn" && animate);
   };
 
   const screenSpecificMarkup = (screen: TutorialScreen): string => {
     switch (screen.id) {
       case "frames":
         return `<div class="lesson-demo convention-cards" aria-label="Conversion du préréglage">
-          <p><span>xdyn · NED/FRD</span><code>[1, 0, 0, 0]</code></p>
-          <p><span>LOTUSim · ENU/FLU</span><code>[√½, 0, 0, √½]</code></p>
+          <p><span>xdyn · NED/FRD · valeur courante</span><code>${quaternionLabel(snapshot.nedFrd)}</code></p>
+          <p><span>LOTUSim · ENU/FLU · valeur courante</span><code>${quaternionLabel(snapshot.enuFlu)}</code></p>
         </div>`;
-      case "axis-angle":
+      case "axis-angle": {
+        const [w, x, y, z] = snapshot.enuFlu;
+        const equivalent: Quaternion = showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu;
         return `<div class="lesson-demo equivalent-card">
-          <div><span>q · représentation canonique</span><code>[√3/2, 0, 0, 1/2]</code></div>
+          <div><span>q courant · axe ${axisLabel(snapshot.axisAngle.axis)} · θ ${degreesLabel(snapshot.axisAngle.angle)}</span><code>${quaternionLabel(snapshot.enuFlu)}</code></div>
           <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
-          <p aria-live="polite"><span>Représentation équivalente</span><code>${showNegative ? "[−√3/2, 0, 0, −1/2]" : "[√3/2, 0, 0, 1/2]"}</code></p>
+          <p aria-live="polite"><span>Représentation équivalente affichée</span><code>${quaternionLabel(equivalent)}</code></p>
         </div>`;
+      }
       case "composition": {
         const { result } = composition();
         return `<div class="lesson-demo composition-card">
-          <p><strong>A</strong> roulis 90° · <strong>B</strong> lacet 90°</p>
+          <p><strong>Démo de référence</strong> · A roulis 90° · B lacet 90° · fantôme après la première rotation</p>
           <code>${compositionSwapped ? "qA ⊗ qB" : "qB ⊗ qA"} = ${quaternionLabel(result)}</code>
+          <p><strong>Bateau courant</strong> <code>${quaternionLabel(snapshot.enuFlu)}</code></p>
           <button type="button" data-lesson-action="swap-composition">Permuter l’ordre</button>
         </div>`;
       }
       case "gimbal-lock":
         return `<div class="lesson-demo gimbal-actions">
-          <p><span>Décomposition saisie</span><code>roulis 20° · tangage 90° · lacet 35°</code></p>
-          <p><span>Affichage canonique équivalent</span><code>roulis 0° · tangage 90° · lacet 15°</code></p>
+          <p><span>Décomposition canonique courante</span><code>roulis ${degreesLabel(snapshot.eulerEnu.roll)} · tangage ${degreesLabel(snapshot.eulerEnu.pitch)} · lacet ${degreesLabel(snapshot.eulerEnu.yaw)}</code></p>
+          <p><span>Quaternion courant</span><code>${quaternionLabel(snapshot.enuFlu)}</code></p>
           <button type="button" data-lesson-action="trigger-gimbal">Déclencher 90°</button>
           <button type="button" data-lesson-action="reset-gimbal">Réinitialiser les angles</button>
         </div>`;
@@ -227,8 +264,8 @@ export function mountLabApp(root: HTMLElement): void {
               : "<mark>Q_NED_TO_ENU ⊗ q_NED_FRD ⊗ Q_FLU_TO_FRD</mark>";
         return `<div class="lesson-demo lotusim-demo">
           <div class="convention-cards" aria-label="Deux écritures de la même attitude physique">
-            <p><span>xdyn · (qr,qi,qj,qk)</span><code>[1, 0, 0, 0]</code></p>
-            <p><span>LOTUSim · (w,x,y,z)</span><code>[√½, 0, 0, √½]</code></p>
+            <p><span>xdyn · NED/FRD · (qr,qi,qj,qk)</span><code>${quaternionLabel(snapshot.nedFrd)}</code></p>
+            <p><span>LOTUSim · ENU/FLU · (w,x,y,z)</span><code>${quaternionLabel(snapshot.enuFlu)}</code></p>
           </div>
           <div class="phase-controls" role="group" aria-label="Étapes de conversion">
             <button type="button" data-phase="world" aria-pressed="${comparisonPhase === "world"}">Monde</button>
@@ -268,7 +305,7 @@ export function mountLabApp(root: HTMLElement): void {
     if (lesson.hidden) return;
 
     const screen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
-    const detailHeadings = ["Définition exacte", "Dérivation avec les valeurs courantes", "Exemple numérique"];
+    const detailHeadings = ["Définition exacte", "Dérivation", "Exemple de référence"];
     lesson.innerHTML = `<header class="lesson-panel__header">
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
         <h2 tabindex="-1">${screen.title}</h2>
@@ -367,8 +404,9 @@ export function mountLabApp(root: HTMLElement): void {
           renderLesson();
         } else if (action === "reset-gimbal") {
           resetTeachingScene();
-          scene.setGimbalAngles({ roll: 0, pitch: 0, yaw: 0 });
           renderSnapshot(snapshotFromEnu([1, 0, 0, 0]), null, true);
+          applyCurrentTeachingVisuals(screen);
+          renderLesson();
         } else if (action === "retry-challenge") {
           challengeSelection = null;
           challengeFeedback = "";
@@ -404,6 +442,7 @@ export function mountLabApp(root: HTMLElement): void {
     resetTeachingScene();
     tutorialState = skipTutorial(tutorialState);
     renderLesson();
+    sandboxTitle.focus({ preventScroll: true });
     sandbox.scrollIntoView({ block: "start" });
   };
 
@@ -416,10 +455,16 @@ export function mountLabApp(root: HTMLElement): void {
       normalization.textContent = "";
       return;
     }
+    const screen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
     resetTeachingScene();
     renderSnapshot(derive(result.value), result.note);
+    if (tutorialState.mode === "tutorial") {
+      applyCurrentTeachingVisuals(screen, screen.id === "lotusim-xdyn");
+    }
     renderLesson();
   };
+
+  const focusLessonTitle = () => lesson.querySelector<HTMLElement>("h2")?.focus();
 
   resetCamera.addEventListener("click", () => scene.resetCamera());
   byId<HTMLButtonElement>(root, "sandbox-jump").addEventListener("click", () => {
@@ -429,6 +474,7 @@ export function mountLabApp(root: HTMLElement): void {
     tutorialState = resumeTutorial(tutorialState);
     applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
     renderLesson();
+    focusLessonTitle();
     lesson.scrollIntoView({ block: "start" });
   });
   byId<HTMLButtonElement>(root, "tutorial-restart").addEventListener("click", () => {
@@ -442,7 +488,9 @@ export function mountLabApp(root: HTMLElement): void {
     resetAnimation();
     resetTeachingScene();
     renderSnapshot(snapshotFromEnu([1, 0, 0, 0]));
+    applyCurrentTeachingVisuals(TUTORIAL_SCREENS[0]!);
     renderLesson();
+    focusLessonTitle();
   });
   new ResizeObserver(() => scene.resize()).observe(container);
 
@@ -451,8 +499,12 @@ export function mountLabApp(root: HTMLElement): void {
     onAxisAngle: (result) => update(result, snapshotFromEnu),
     onEuler: (result) => update(result, (euler) => snapshotFromEnu(fromEulerZYX(euler))),
     onPreset: (preset) => {
+      const screen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
       resetTeachingScene();
       renderSnapshot(presetSnapshot(preset));
+      if (tutorialState.mode === "tutorial") {
+        applyCurrentTeachingVisuals(screen, screen.id === "lotusim-xdyn");
+      }
       renderLesson();
     },
   });

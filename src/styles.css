@@ -98,8 +98,27 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
 .scene-shell__toolbar h2 { margin-bottom: 0.3rem; }
 .scene-shell__legend { margin: 0; font: 0.72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .scene-shell__reset { flex: none; }
-.scene-shell__canvas { min-height: 0; background: #123d4a; color: #fff; }
+.scene-shell__canvas { position: relative; min-height: 0; background: #123d4a; color: #fff; }
 .scene-shell__canvas canvas { display: block; width: 100%; height: 100%; }
+
+.scene-comparison-labels {
+  position: absolute;
+  inset: 0.65rem 0.8rem auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 2rem;
+  pointer-events: none;
+  font: 700 0.72rem/1.3 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: center;
+}
+
+.scene-comparison-labels[hidden] { display: none; }
+
+.scene-comparison-labels span {
+  padding: 0.3rem 0.4rem;
+  background: rgb(8 39 51 / 0.82);
+  border: 1px solid #9ac9cf;
+}
 
 .axis-legend {
   display: flex;
