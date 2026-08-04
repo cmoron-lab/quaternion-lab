@@ -43,7 +43,7 @@ Les exemples de cap vérifiés sont `heading_NED = 0° → yaw_ENU = +90°` et `
 
 ## Sources
 
-- [ROS 2 — Quaternion fundamentals](https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html)
+- [ROS 2 — Quaternion fundamentals](https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html)
 - [NASA TM-74839 — Euler angles, quaternions, and transformation matrices](https://ntrs.nasa.gov/citations/19770024290)
 - [Sommer et al. — Why and How to Avoid the Flipped Quaternion Multiplication](https://arxiv.org/abs/1801.07478)
 - [SciPy — Rotation](https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.html)

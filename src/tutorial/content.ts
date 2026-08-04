@@ -37,7 +37,7 @@ export const TUTORIAL_SCREENS = [
     sources: [
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
     ],
   },
@@ -67,7 +67,7 @@ export const TUTORIAL_SCREENS = [
       },
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
     ],
   },
@@ -96,7 +96,7 @@ export const TUTORIAL_SCREENS = [
       },
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
     ],
   },
@@ -110,9 +110,9 @@ export const TUTORIAL_SCREENS = [
     takeaway:
       "q_B ⊗ q_A signifie « d'abord A, puis B » : l'ordre de lecture est l'inverse de l'ordre chronologique.",
     details: [
-      "v′ = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*. Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q=q_B⊗q_A : la rotation la plus proche du vecteur agit en premier.",
-      "Avec A=roulis +90° et B=lacet +90°, q_A=(√½,√½,0,0) et q_B=(√½,0,0,√½). Ainsi q_B⊗(q_A⊗v⊗q_A*)⊗q_B*=(q_B⊗q_A)⊗v⊗(q_B⊗q_A)*.",
-      "Dans la démo de référence, q_B⊗q_A=(1/2,1/2,1/2,1/2). En permutant, q_A⊗q_B=(1/2,1/2,−1/2,1/2): le signe de y change et le bateau prend une autre attitude.",
+      "v′ = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*. Pour des quaternions Hamilton actifs corps-vers-monde, appliquer A puis B signifie q = q_B ⊗ q_A : la rotation la plus proche du vecteur agit en premier.",
+      "Avec A = roulis +90° et B = lacet +90°, q_A = (√½, √½, 0, 0) et q_B = (√½, 0, 0, √½). Ainsi q_B ⊗ (q_A ⊗ v ⊗ q_A*) ⊗ q_B* = (q_B ⊗ q_A) ⊗ v ⊗ (q_B ⊗ q_A)*.",
+      "Dans la démo de référence, q_B ⊗ q_A = (1/2, 1/2, 1/2, 1/2). En permutant, q_A ⊗ q_B = (1/2, 1/2, −1/2, 1/2) : le signe de y change et le bateau prend une autre attitude.",
     ],
     pitfalls: [
       "Lire le produit de gauche à droite comme une liste chronologique.",
@@ -125,7 +125,7 @@ export const TUTORIAL_SCREENS = [
       },
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
     ],
   },
@@ -180,7 +180,7 @@ export const TUTORIAL_SCREENS = [
     sources: [
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
       {
         label: "Three.js — Quaternion",
@@ -199,7 +199,7 @@ export const TUTORIAL_SCREENS = [
       "En cas de doute sur une convention, refaites le produit dans l'ordre annoncé plutôt que de juger à la proximité des composantes.",
     details: [
       "Q_NED_TO_ENU ⊗ [√½,0,0,√½] ⊗ Q_FLU_TO_FRD = [−1,0,0,0] ≡ [1,0,0,0]. L'entrée correspond à un cap NED de +90° ; après les changements monde et corps, le bateau pointe vers +X ENU avec ses axes FLU alignés : l'orientation ENU/FLU est l'identité, dont le quaternion opposé représente exactement la même rotation.",
-      "En remplaçant les valeurs, (0,√½,√½,0)⊗(√½,0,0,√½)⊗(0,1,0,0)=(−1,0,0,0). La double couverture autorise ensuite la forme canonique opposée (1,0,0,0).",
+      "En remplaçant les valeurs, (0, √½, √½, 0) ⊗ (√½, 0, 0, √½) ⊗ (0, 1, 0, 0) = (−1, 0, 0, 0). La double couverture autorise ensuite la forme canonique opposée (1, 0, 0, 0).",
       "Numériquement, [1,0,0,0] et [−1,0,0,0] sont corrects. Les autres propositions isolent une erreur: changement monde ou corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l’ordre Three.js.",
     ],
     pitfalls: [
@@ -209,7 +209,7 @@ export const TUTORIAL_SCREENS = [
     sources: [
       {
         label: "ROS 2 — Quaternion fundamentals",
-        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+        url: "https://docs.ros.org/en/jazzy/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
       },
       {
         label: "Three.js — Quaternion",

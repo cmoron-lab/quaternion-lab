@@ -261,8 +261,8 @@ export function mountLabApp(root: HTMLElement): void {
         </div>`;
       case "anatomy": {
         const thetaDegrees = ((snapshot.axisAngle.angle * 180) / Math.PI).toFixed(1);
-        return `<div class="lesson-demo equivalent-card">
-          <div><span>q = [cos(θ/2), u·sin(θ/2)] · axe u ${axisLabel(currentRotationAxis())} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
+        return `<div class="lesson-demo anatomy-card">
+          <p><span>q = [cos(θ/2), u·sin(θ/2)] · axe u ${axisLabel(currentRotationAxis())} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></p>
           <label class="range-control" for="lesson-theta">θ
             <input id="lesson-theta" type="range" min="0" max="180" step="0.1" value="${thetaDegrees}" />
             <output id="lesson-theta-output" for="lesson-theta">${degreesLabel(snapshot.axisAngle.angle)}</output>
