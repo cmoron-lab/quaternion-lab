@@ -42,7 +42,6 @@ export const startTutorial = (): TutorialState => ({
 
 export const tutorialChrome = (state: TutorialState) => ({
   showSandbox: state.mode === "sandbox",
-  showSkip: state.mode === "tutorial",
   showResume: state.mode === "sandbox",
   showRestart: state.screenIndex > 0,
 });

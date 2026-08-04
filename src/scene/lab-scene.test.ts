@@ -97,13 +97,13 @@ describe("schematic scene boundary", () => {
     ]);
   });
 
-  test("marks the world north with a label", () => {
+  test("marks the world north and names the convention", () => {
     for (const convention of ["NED", "ENU"] as const) {
-      const north = withCanvasStub(() =>
-        createWorldAxes(convention).getObjectByName("north-label"),
-      );
+      const axes = withCanvasStub(() => createWorldAxes(convention));
+      const north = axes.getObjectByName("north-label");
       expect(north).toBeDefined();
       expect(north?.position.y).toBeGreaterThan(1.25);
+      expect(axes.getObjectByName("convention-label")).toBeDefined();
     }
   });
 

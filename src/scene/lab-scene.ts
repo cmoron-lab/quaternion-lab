@@ -67,6 +67,9 @@ export const createWorldAxes = (convention: "NED" | "ENU"): THREE.Group => {
   const north = createLabelSprite("N", "north-label");
   north.position.set(0, 1.55, 0);
   axes.add(north);
+  const tag = createLabelSprite(convention, "convention-label");
+  tag.position.set(0, -0.55, 0.2);
+  axes.add(tag);
   return axes;
 };
 
@@ -77,7 +80,7 @@ function createLabelSprite(text: string, name: string): THREE.Sprite {
   const context = canvas.getContext("2d");
   if (!context) throw new Error("Le canvas 2D n'est pas disponible.");
   context.fillStyle = "#f7fbfa";
-  context.font = "700 88px Arial, sans-serif";
+  context.font = `700 ${text.length > 1 ? 44 : 88}px Arial, sans-serif`;
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.fillText(text, 64, 68);
@@ -269,17 +272,20 @@ export class LabScene {
     this.scene.add(this.rotationAxis);
 
     this.gimbalRings.name = "gimbal-rings";
-    const rings: readonly [THREE.ColorRepresentation, THREE.Euler][] = [
-      [PORT, new THREE.Euler(0, 0, 0)],
-      [STARBOARD, new THREE.Euler(Math.PI / 2, 0, 0)],
-      [AMBER, new THREE.Euler(0, Math.PI / 2, 0)],
+    // Ordre = axes de setGimbalAngles : lacet (Z), tangage (Y′), roulis (X″).
+    // Couleurs alignées sur celles des flèches d'axes (rouge=X, vert=Y,
+    // ambre=Z) ; rayons distincts pour que les anneaux restent tous visibles
+    // quand le verrouillage de cardan les rend coplanaires.
+    const rings: readonly [THREE.ColorRepresentation, number][] = [
+      [AMBER, 1.65],
+      [STARBOARD, 1.55],
+      [PORT, 1.45],
     ];
-    for (const [color, rotation] of rings) {
+    for (const [color, radius] of rings) {
       const ring = new THREE.Mesh(
-        new THREE.TorusGeometry(1.45, 0.025, 8, 48),
+        new THREE.TorusGeometry(radius, 0.025, 8, 48),
         new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.82 }),
       );
-      ring.rotation.copy(rotation);
       this.gimbalRings.add(ring);
     }
     this.gimbalRings.visible = false;
@@ -332,7 +338,6 @@ export class LabScene {
       for (const track of tracks) track.object.quaternion.copy(track.target);
       this.animation = undefined;
       this.animationClock = undefined;
-      this.syncComparisonState();
       return;
     }
     for (const track of tracks) track.object.quaternion.copy(track.start);
@@ -346,7 +351,6 @@ export class LabScene {
       elapsedMs: 0,
     };
     this.animationClock = undefined;
-    this.syncComparisonState();
   }
 
   setAnimationSpeed(speed: 0.5 | 1): void {
@@ -390,7 +394,6 @@ export class LabScene {
     this.showComparison(comparing);
     if (left) this.comparisonLeft.quaternion.copy(toThreeQuaternion(left));
     if (right) this.comparisonRight.quaternion.copy(toThreeQuaternion(right));
-    this.syncComparisonState();
   }
 
   setComparisonPhase(phase: "none" | "world" | "body" | "full"): void {
@@ -441,7 +444,6 @@ export class LabScene {
       for (const track of this.animation.tracks) {
         track.object.quaternion.slerpQuaternions(track.start, track.target, progress);
       }
-      this.syncComparisonState();
       if (progress === 1) this.animation = undefined;
     }
     this.controls.update();
@@ -470,7 +472,6 @@ export class LabScene {
       for (const track of tracks) track.object.quaternion.copy(track.target);
       this.animation = undefined;
       this.animationClock = undefined;
-      this.syncComparisonState();
       return;
     }
     this.animation = { tracks, durationMs, elapsedMs: 0 };
@@ -491,15 +492,5 @@ export class LabScene {
     if (rightFlu) rightFlu.visible = true;
     if (rightFrd) rightFrd.visible = false;
     this.setComparisonPhase("full");
-    this.syncComparisonState();
-  }
-
-  private syncComparisonState(): void {
-    [this.comparisonLeft, this.comparisonRight].forEach((boat, index) => {
-      const label = this.comparisonLabels.children[index] as HTMLElement | undefined;
-      if (!label) return;
-      const { w, x, y, z } = boat.quaternion;
-      label.dataset.quaternion = [w, x, y, z].map((value) => value.toFixed(6)).join(",");
-    });
   }
 }

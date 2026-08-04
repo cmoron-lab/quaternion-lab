@@ -77,7 +77,6 @@ describe("tutorial", () => {
   test("keeps the chrome stable across screens and reserves the sandbox to sandbox mode", () => {
     expect(tutorialChrome(startTutorial())).toEqual({
       showSandbox: false,
-      showSkip: true,
       showResume: false,
       showRestart: false,
     });
@@ -88,14 +87,12 @@ describe("tutorial", () => {
     }
     expect(tutorialChrome(last)).toEqual({
       showSandbox: false,
-      showSkip: true,
       showResume: false,
       showRestart: true,
     });
 
     expect(tutorialChrome(skipTutorial(last))).toEqual({
       showSandbox: true,
-      showSkip: false,
       showResume: true,
       showRestart: true,
     });

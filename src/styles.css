@@ -180,6 +180,7 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .lesson-panel__progress {
   order: 2;
   margin: 0;
+  white-space: nowrap;
   color: #086c7a;
   font: 700 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.08em;

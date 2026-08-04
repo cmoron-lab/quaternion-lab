@@ -19,7 +19,7 @@ bun run preview
 
 ## Utilisation
 
-Le tutoriel démarre immédiatement. **Passer au bac à sable** masque la leçon sans perdre l'attitude courante; **Reprendre le tutoriel** la réaffiche pendant la même session; **Recommencer** la ramène à sa première étape. La caméra du bateau s'orbite à la souris et son bouton de réinitialisation restaure la vue.
+Le tutoriel démarre immédiatement. **Explorer librement** masque la leçon sans perdre l'attitude courante; **Reprendre le tutoriel** la réaffiche pendant la même session; **Recommencer depuis le début** la ramène à sa première étape. La caméra du bateau s'orbite à la souris et son bouton de réinitialisation restaure la vue.
 
 Le bac à sable conserve une seule attitude ENU/FLU et synchronise quaternion, angle-axe et angles d'Euler intrinsèques Z-Y′-X″. Les messages signalent les valeurs invalides, la normalisation et le verrouillage de cardan. Les libellés d'axes restent présents dans le texte, en plus des couleurs.
 

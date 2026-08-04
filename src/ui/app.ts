@@ -75,7 +75,6 @@ export function mountLabApp(root: HTMLElement): void {
   const sandbox = byId<HTMLElement>(root, "sandbox");
   const sandboxTitle = byId<HTMLElement>(root, "sandbox-title");
   const lesson = byId<HTMLElement>(root, "lesson-panel");
-  const sandboxJump = byId<HTMLButtonElement>(root, "sandbox-jump");
   const tutorialResume = byId<HTMLButtonElement>(root, "tutorial-resume");
   const tutorialRestart = byId<HTMLButtonElement>(root, "tutorial-restart");
   const challengeAnnouncer = document.createElement("p");
@@ -329,7 +328,6 @@ export function mountLabApp(root: HTMLElement): void {
   const renderChrome = () => {
     const chrome = tutorialChrome(tutorialState);
     sandbox.hidden = !chrome.showSandbox;
-    sandboxJump.hidden = !chrome.showSkip;
     tutorialResume.hidden = !chrome.showResume;
     tutorialRestart.hidden = !chrome.showRestart;
     conventionBadge.textContent = "Monde ENU · Corps FLU · xdyn NED/FRD";
@@ -574,9 +572,6 @@ export function mountLabApp(root: HTMLElement): void {
   const focusLessonTitle = () => lesson.querySelector<HTMLElement>("h2")?.focus();
 
   resetCamera.addEventListener("click", () => scene.resetCamera());
-  sandboxJump.addEventListener("click", () => {
-    enterSandbox();
-  });
   tutorialResume.addEventListener("click", () => {
     tutorialState = resumeTutorial(tutorialState);
     applyScreenDemo(TUTORIAL_SCREENS[tutorialState.screenIndex]!);
