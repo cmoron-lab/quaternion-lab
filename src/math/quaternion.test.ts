@@ -118,4 +118,10 @@ describe("scalar-first Hamilton quaternions", () => {
     expect(canonicalize([2, 0, 0, 0])).toEqual([1, 0, 0, 0]);
     expect(() => canonicalize([0, 0, 0, 0])).toThrow(RangeError);
   });
+
+  test("picks one representative per 180-degree rotation despite w = 0", () => {
+    expect(canonicalize([0, 0, 0, -1])).toEqual([0, 0, 0, 1]);
+    expect(canonicalize([0, -0.6, 0.8, 0])).toEqual([0, 0.6, -0.8, 0]);
+    expect(canonicalize([0, -0.6, 0.8, 0])).toEqual(canonicalize([0, 0.6, -0.8, 0]));
+  });
 });

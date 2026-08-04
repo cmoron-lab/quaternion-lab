@@ -49,7 +49,7 @@ describe("sandbox validation", () => {
     if (result.ok) {
       expect(result.value).toEqual([1, 0, 0, 0]);
       expect(result.note).toContain("q et -q");
-      expect(result.note).toContain("w ≥ 0");
+      expect(result.note).toContain("canonique");
     }
   });
 

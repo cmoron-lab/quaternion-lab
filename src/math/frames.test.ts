@@ -23,6 +23,13 @@ describe("LOTUSim xdyn frame conversion", () => {
     expect(sameOrientation(nedFrdToEnuFlu(eastNed), [1, 0, 0, 0])).toBe(true);
   });
 
+  test("keeps roll, flips pitch, and remaps yaw for a full attitude", () => {
+    const rad = (degrees: number) => (degrees * Math.PI) / 180;
+    const ned = fromEulerZYX({ roll: rad(10), pitch: rad(20), yaw: rad(30) });
+    const enu = fromEulerZYX({ roll: rad(10), pitch: rad(-20), yaw: rad(60) });
+    expect(sameOrientation(nedFrdToEnuFlu(ned), enu)).toBe(true);
+  });
+
   test("round-trips an arbitrary attitude", () => {
     const source = fromEulerZYX({ roll: 0.2, pitch: -0.1, yaw: 0.8 });
     expect(sameOrientation(enuFluToNedFrd(nedFrdToEnuFlu(source)), source)).toBe(true);

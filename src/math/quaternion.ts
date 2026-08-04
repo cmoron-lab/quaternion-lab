@@ -34,10 +34,17 @@ export function normalize(q: Quaternion): Quaternion {
   return q.map((value) => value / length) as [number, number, number, number];
 }
 
+// Signe canonique : w ≥ 0, départagé par la première composante vectorielle
+// non nulle quand w ≈ 0 (rotation de 180°, où q et -q ont tous deux w = 0).
+export const canonicalSign = (q: Quaternion): 1 | -1 => {
+  const lead = q.find((value) => Math.abs(value) > EPSILON) ?? 1;
+  return lead < 0 ? -1 : 1;
+};
+
 export function canonicalize(q: Quaternion): Quaternion {
   const normalized = normalize(q);
-  return normalized[0] < 0
-    ? (normalized.map((value) => -value) as [number, number, number, number])
+  return canonicalSign(normalized) < 0
+    ? (normalized.map((value) => -value || 0) as [number, number, number, number])
     : normalized;
 }
 

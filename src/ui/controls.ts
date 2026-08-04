@@ -1,4 +1,10 @@
-import { fromAxisAngle, type EulerZYX, type Quaternion, type Vec3 } from "../math/quaternion";
+import {
+  canonicalSign,
+  fromAxisAngle,
+  type EulerZYX,
+  type Quaternion,
+  type Vec3,
+} from "../math/quaternion";
 import type { OrientationSnapshot } from "../math/frames";
 
 export type ValidationResult<T> =
@@ -58,9 +64,9 @@ export function validateQuaternionInput(raw: Quaternion): ValidationResult<Quate
       `Quaternion normalisé : norme ${norm} → 1 — un quaternion d'orientation est unitaire, vos valeurs ont été mises à l'échelle`,
     );
   }
-  if (value[0] < 0) {
+  if (canonicalSign(value) < 0) {
     value = value.map((component) => -component || 0) as [number, number, number, number];
-    notes.push("q et -q décrivent la même orientation — affichage canonique avec w ≥ 0");
+    notes.push("q et -q décrivent la même orientation — affichage sous la forme canonique");
   }
   return { ok: true, value, note: notes.join(" · ") || null };
 }
