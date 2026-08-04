@@ -66,8 +66,6 @@ const axisLabel = (axis: readonly number[]): string =>
 
 export function mountLabApp(root: HTMLElement): void {
   const container = byId<HTMLElement>(root, "scene-container");
-  const sceneLegend = byId<HTMLElement>(root, "scene-legend");
-  const conventionBadge = byId<HTMLElement>(root, "convention-badge");
   const validation = byId<HTMLElement>(root, "validation-message");
   const normalization = byId<HTMLElement>(root, "normalization-note");
   const gimbalWarning = byId<HTMLElement>(root, "gimbal-warning");
@@ -330,10 +328,6 @@ export function mountLabApp(root: HTMLElement): void {
     sandbox.hidden = !chrome.showSandbox;
     tutorialResume.hidden = !chrome.showResume;
     tutorialRestart.hidden = !chrome.showRestart;
-    conventionBadge.textContent = "Monde ENU · Corps FLU · xdyn NED/FRD";
-    sceneLegend.textContent =
-      "Monde ENU : X East · Y North · Z Up\nCorps FLU : X Forward · Y Left · Z Up";
-    container.setAttribute("aria-label", "Bateau FLU dans le monde ENU");
   };
 
   const renderLesson = () => {

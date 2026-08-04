@@ -25,12 +25,12 @@
           <div class="scene-shell__toolbar">
             <div>
               <h2 id="scene-title">Laboratoire de quaternions</h2>
-              <p id="scene-legend" class="scene-shell__legend">Monde ENU : X East · Y North · Z Up<br />Corps FLU : X Forward · Y Left · Z Up</p>
+              <p id="scene-legend" class="scene-shell__legend">Monde ENU : <span class="axis-chip axis-chip--x">X East</span> · <span class="axis-chip axis-chip--y">Y North</span> · <span class="axis-chip axis-chip--z">Z Up</span><br />Corps FLU : <span class="axis-chip axis-chip--x">X Forward</span> · <span class="axis-chip axis-chip--y">Y Left</span> · <span class="axis-chip axis-chip--z">Z Up</span></p>
             </div>
             <button class="scene-shell__reset" id="reset-camera" type="button">Réinitialiser la caméra</button>
           </div>
           <div id="scene-container" class="scene-shell__canvas" aria-label="Bateau FLU dans le monde ENU"></div>
-          <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
+          <p class="axis-legend"><span class="axis-legend__port">Bande rouge : bâbord (gauche)</span><span class="axis-legend__note">Flèches : couleurs des axes X · Y · Z, sans lien avec les bandes</span><span class="axis-legend__starboard">Bande verte : tribord (droite)</span></p>
         </section>
 
         <aside id="sandbox" class="controls-panel" aria-label="Bac à sable de quaternions" hidden>

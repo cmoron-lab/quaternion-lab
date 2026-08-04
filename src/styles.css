@@ -100,7 +100,13 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
 }
 
 .scene-shell__toolbar h2 { margin-bottom: 0.3rem; }
-.scene-shell__legend { margin: 0; white-space: pre-line; font: 0.72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.scene-shell__legend { margin: 0; font: 0.72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+.axis-chip { display: inline-flex; align-items: center; gap: 0.25rem; }
+.axis-chip::before { width: 0.55rem; height: 0.55rem; border: 1px solid #082733; content: ""; }
+.axis-chip--x::before { background: #d94b55; }
+.axis-chip--y::before { background: #218b68; }
+.axis-chip--z::before { background: #e9a23b; }
 .scene-shell__reset { flex: none; }
 .scene-shell__canvas { position: relative; min-height: 0; background: #123d4a; color: #fff; }
 .scene-shell__canvas canvas { display: block; width: 100%; height: 100%; }
@@ -133,9 +139,10 @@ h2 { margin: 0; font-size: 1.35rem; line-height: 1; }
   font-size: 0.72rem;
 }
 .axis-legend span { display: inline-flex; align-items: center; gap: 0.35rem; }
-.axis-legend span::before { width: 0.7rem; height: 0.7rem; border: 1px solid #082733; content: ""; }
+.axis-legend__port::before, .axis-legend__starboard::before { width: 0.7rem; height: 0.7rem; border: 1px solid #082733; content: ""; }
 .axis-legend__port::before { background: #d94b55; }
 .axis-legend__starboard::before { background: #218b68; }
+.axis-legend__note { color: #123d4a; font-style: italic; }
 
 .controls-panel, .lesson-panel {
   align-self: start;
