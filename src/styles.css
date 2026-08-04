@@ -314,6 +314,17 @@ select { border: 1px solid #9ac9cf; padding: 0.4rem; background: #fff; color: #0
 .challenge__options { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.45rem; }
 .challenge__feedback { min-height: 2.6rem; margin: 0.65rem 0; color: #123d4a; font-weight: 700; line-height: 1.4; }
 
+.lab__footer {
+  width: min(92rem, calc(100% - 2rem));
+  margin-inline: auto;
+  padding: 0.55rem 0 1.1rem;
+  border-top: 1px solid #9ac9cf;
+  color: #086c7a;
+  font: 0.72rem/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  text-align: right;
+}
+.lab__footer p { margin: 0; }
+
 .visually-hidden {
   position: absolute;
   width: 1px;
