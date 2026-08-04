@@ -1,5 +1,12 @@
-import { snapshotFromEnu, snapshotFromNed, type OrientationSnapshot } from "../math/frames";
 import {
+  Q_FLU_TO_FRD,
+  Q_NED_TO_ENU,
+  snapshotFromEnu,
+  snapshotFromNed,
+  type OrientationSnapshot,
+} from "../math/frames";
+import {
+  canonicalize,
   fromAxisAngle,
   fromEulerZYX,
   multiply,
@@ -152,6 +159,20 @@ export function mountLabApp(root: HTMLElement): void {
       : { intermediate: a, result: multiply(b, a) };
   };
 
+  // Attitude du bateau LOTUSim selon la phase : les phases partielles montrent
+  // l'attitude (fausse) produite en n'appliquant qu'un seul des deux facteurs —
+  // les mêmes erreurs que les distracteurs du défi final.
+  const xdynPhaseQuaternion = (): Quaternion => {
+    switch (comparisonPhase) {
+      case "world":
+        return canonicalize(multiply(Q_NED_TO_ENU, snapshot.nedFrd));
+      case "body":
+        return canonicalize(multiply(snapshot.nedFrd, Q_FLU_TO_FRD));
+      case "full":
+        return snapshot.enuFlu;
+    }
+  };
+
   const applyCurrentTeachingVisuals = (screen: TutorialScreen, animateComparison = false) => {
     switch (screen.id) {
       case "axis-angle":
@@ -167,11 +188,11 @@ export function mountLabApp(root: HTMLElement): void {
         if (animateComparison) {
           scene.animateComparison(
             snapshot.enuFlu,
-            snapshot.enuFlu,
+            xdynPhaseQuaternion(),
             reducedMotion.matches ? 0 : 900,
           );
         } else {
-          scene.setComparison(snapshot.enuFlu, snapshot.enuFlu);
+          scene.setComparison(snapshot.enuFlu, xdynPhaseQuaternion());
         }
         scene.setComparisonPhase(comparisonPhase);
         break;
@@ -336,6 +357,9 @@ export function mountLabApp(root: HTMLElement): void {
 
     const screen: TutorialScreen = TUTORIAL_SCREENS[tutorialState.screenIndex]!;
     const detailHeadings = ["Définition exacte", "Dérivation", "Exemple de référence"];
+    // Le résumé et la dérivation du défi contiennent la réponse : ne les
+    // révéler qu'après un premier essai.
+    const revealLesson = screen.id !== "challenge" || challengeFeedback !== "";
     lesson.innerHTML = `<header class="lesson-panel__header">
         <p class="lesson-panel__progress">Étape ${tutorialState.screenIndex + 1} / ${TUTORIAL_SCREENS.length}</p>
         <h2 tabindex="-1">${screen.title}</h2>
@@ -352,7 +376,7 @@ export function mountLabApp(root: HTMLElement): void {
           </select>
         </label>
       </div>
-      <p class="lesson-panel__summary"><strong>Ce que vous venez d'observer</strong>${screen.summary}</p>
+      ${revealLesson ? `<p class="lesson-panel__summary"><strong>Ce que vous venez d'observer</strong>${screen.summary}</p>
       <p class="lesson-panel__takeaway"><strong>À retenir</strong>${screen.takeaway}</p>
       <details${tutorialState.detailsOpen ? " open" : ""}>
         <summary>Comprendre en détail</summary>
@@ -368,7 +392,7 @@ export function mountLabApp(root: HTMLElement): void {
               `<li><a href="${source.url}" target="_blank" rel="noreferrer">${source.label}</a></li>`,
           )
           .join("")}</ul>
-      </details>
+      </details>` : ""}
       <nav class="lesson-navigation" aria-label="Navigation du tutoriel">
         <button type="button" data-lesson-action="previous"${tutorialState.screenIndex === 0 ? " disabled" : ""}>Précédent</button>
         <button type="button" data-lesson-action="skip">Explorer librement</button>
@@ -436,6 +460,11 @@ export function mountLabApp(root: HTMLElement): void {
     lesson.querySelectorAll<HTMLButtonElement>("[data-phase]").forEach((button) => {
       button.addEventListener("click", () => {
         comparisonPhase = button.dataset.phase as typeof comparisonPhase;
+        scene.animateComparison(
+          snapshot.enuFlu,
+          xdynPhaseQuaternion(),
+          reducedMotion.matches ? 0 : 900,
+        );
         scene.setComparisonPhase(comparisonPhase);
         renderLesson();
       });

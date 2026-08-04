@@ -132,7 +132,7 @@ export const TUTORIAL_SCREENS = [
     id: "lotusim-xdyn",
     title: "Conversion xdyn ↔ LOTUSim : NED/FRD vers ENU/FLU",
     tryIt:
-      "Cliquez sur « Monde » puis sur « Corps » pour animer séparément les deux changements de base, avant d'afficher la conversion complète. Observez les deux écritures de la même attitude physique.",
+      "Cliquez sur « Monde » ou « Corps » : le bateau LOTUSim prend l'attitude — fausse — obtenue en n'appliquant que ce facteur, pendant que le bateau xdyn garde l'attitude physique de référence. « Conversion complète » rétablit la bonne orientation : les deux bateaux se réalignent.",
     summary:
       "xdyn parle NED/FRD (North–East–Down / Forward–Right–Down) ; LOTUSim et Gazebo parlent ENU/FLU. Passer de l'un à l'autre exige deux changements de base — un côté monde, un côté corps — et, à la frontière Three.js, un simple réordonnancement des composantes de (w,x,y,z) vers (x,y,z,w).",
     takeaway:
