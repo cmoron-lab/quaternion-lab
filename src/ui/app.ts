@@ -156,6 +156,11 @@ export function mountLabApp(root: HTMLElement): void {
       : { intermediate: a, result: multiply(b, a) };
   };
 
+  // À θ = 0 la rotation n'a pas d'axe : toAxisAngle renvoie un fallback [1,0,0]
+  // qui ferait sauter la flèche blanche; on garde le dernier axe manipulé.
+  const currentRotationAxis = (): Vec3 =>
+    snapshot.axisAngle.angle > 1e-6 ? snapshot.axisAngle.axis : lessonAxis;
+
   // Attitude du bateau LOTUSim selon la phase : les phases partielles montrent
   // l'attitude (fausse) produite en n'appliquant qu'un seul des deux facteurs —
   // les mêmes erreurs que les distracteurs du défi final.
@@ -173,7 +178,7 @@ export function mountLabApp(root: HTMLElement): void {
   const applyCurrentTeachingVisuals = (screen: TutorialScreen, animateComparison = false) => {
     switch (screen.id) {
       case "axis-angle":
-        scene.setRotationAxis(snapshot.axisAngle.axis);
+        scene.setRotationAxis(currentRotationAxis());
         break;
       case "composition":
         scene.setGhostOrientation(composition().intermediate);
@@ -359,7 +364,7 @@ export function mountLabApp(root: HTMLElement): void {
       <p class="lesson-panel__tryit"><strong>Manipulation</strong>${screen.tryIt}</p>
       ${screenSpecificMarkup(screen)}
       <div class="animation-controls" role="group" aria-label="Animation de la leçon">
-        <button type="button" data-lesson-action="replay"${scene.canReplayAnimation() ? "" : " disabled"}>Rejouer</button>
+        <button type="button" data-lesson-action="replay">Rejouer</button>
         <button type="button" data-lesson-action="pause" aria-pressed="${paused}">${paused ? "Reprendre" : "Pause"}</button>
         <label>Vitesse
           <select id="lesson-speed">
@@ -408,7 +413,7 @@ export function mountLabApp(root: HTMLElement): void {
         fromAxisAngle({ axis: lessonAxis, angle: radians(Number(thetaSlider.value)) }),
       );
       scene.setOrientation(snapshot.enuFlu);
-      scene.setRotationAxis(snapshot.axisAngle.axis);
+      scene.setRotationAxis(currentRotationAxis());
       renderControls(root, snapshot);
       const output = lesson.querySelector<HTMLOutputElement>("#lesson-theta-output");
       if (output) output.value = degreesLabel(snapshot.axisAngle.angle);
@@ -513,7 +518,14 @@ export function mountLabApp(root: HTMLElement): void {
           applyScreenDemo(screen);
           renderLesson();
         } else if (action === "replay") {
-          scene.replayAnimation(!reducedMotion.matches);
+          // Après une manipulation, l'animation sauvegardée est invalidée :
+          // « Rejouer » relance alors la démo de l'écran, jamais un état périmé.
+          if (scene.canReplayAnimation()) {
+            scene.replayAnimation(!reducedMotion.matches);
+          } else {
+            applyScreenDemo(screen);
+            renderLesson();
+          }
         } else if (action === "pause") {
           paused = !paused;
           scene.pauseAnimation(paused);
