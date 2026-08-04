@@ -75,6 +75,20 @@
             </label>
           </fieldset>
           <fieldset>
+            <legend>Matrice de rotation · v_ENU = R · v_FLU</legend>
+            <table class="matrix-table" aria-label="Matrice de rotation 3 par 3">
+              <thead>
+                <tr><th></th><th scope="col"><span class="axis-chip axis-chip--x">F</span></th><th scope="col"><span class="axis-chip axis-chip--y">L</span></th><th scope="col"><span class="axis-chip axis-chip--z">U</span></th></tr>
+              </thead>
+              <tbody>
+                <tr><th scope="row">E</th><td id="m00">1.000</td><td id="m01">0.000</td><td id="m02">0.000</td></tr>
+                <tr><th scope="row">N</th><td id="m10">0.000</td><td id="m11">1.000</td><td id="m12">0.000</td></tr>
+                <tr><th scope="row">U</th><td id="m20">0.000</td><td id="m21">0.000</td><td id="m22">1.000</td></tr>
+              </tbody>
+            </table>
+            <p class="control-note">Chaque colonne est un axe du bateau (F · L · U) exprimé dans le monde ENU.</p>
+          </fieldset>
+          <fieldset>
             <legend>Préréglages</legend>
             <div class="preset-grid">
               <button data-preset="identity-enu" type="button">Quaternion identité</button>

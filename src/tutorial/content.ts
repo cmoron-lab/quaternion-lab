@@ -1,6 +1,7 @@
 export type TutorialScreen = Readonly<{
   id:
     | "frames"
+    | "anatomy"
     | "axis-angle"
     | "composition"
     | "gimbal-lock"
@@ -26,12 +27,11 @@ export const TUTORIAL_SCREENS = [
     takeaway:
       "Orientation ≠ position : pendant toute la démonstration, le bateau n'a pas changé de place.",
     details: [
-      "Le repère monde ENU est fixe : ses trois directions servent de référence. Le repère corps FLU est attaché au bateau : ses axes Forward, Left et Up tournent avec lui. L'orientation est la rotation qui fait passer du repère corps au repère monde.",
+      "Le repère monde ENU est fixe : ses trois directions servent de référence. Le repère corps FLU est attaché au bateau : ses axes Forward, Left et Up tournent avec lui. L'orientation est la rotation qui fait passer du repère corps au repère monde. ENU/FLU est la convention de LOTUSim et de Gazebo; xdyn, lui, parle NED/FRD — la conversion arrive à l'étape 6.",
       "Pour un quaternion unitaire Hamilton actif corps-vers-monde, un vecteur du bateau v devient v′ = q ⊗ (0,v) ⊗ q*, où q* est le conjugué — et donc l'inverse — de q.",
       "Au départ, le bateau pointe vers l'est (X du monde). La démonstration le tourne vers le nord : sa position ne change pas, seule son orientation et les axes qui lui sont attachés tournent.",
     ],
     pitfalls: [
-      "Lire w, x, y et z comme quatre angles indépendants.",
       "Confondre l’orientation, qui décrit une rotation, avec la position du bateau.",
     ],
     sources: [
@@ -42,22 +42,52 @@ export const TUTORIAL_SCREENS = [
     ],
   },
   {
-    id: "axis-angle",
-    title: "Axis-angle : un axe, un angle",
+    id: "anatomy",
+    title: "Anatomie : [w, x, y, z], quatre nombres liés",
     tryIt:
-      "Faites glisser θ jusqu'à 90° et observez l'axe lumineux : la partie vectorielle du quaternion reste alignée avec lui. Cliquez ensuite sur « Afficher −q » : l'attitude du bateau ne change pas.",
+      "Faites glisser θ de 0° à 180° et lisez le quaternion : w = cos(θ/2) décroît de 1 à 0 pendant que la composante alignée avec la flèche blanche grandit comme sin(θ/2). Les quatre nombres bougent ensemble, jamais séparément.",
     summary:
-      "Toute rotation peut se décrire par un axe et un angle : c'est la représentation axis-angle. Le quaternion range ces deux informations dans quatre nombres — une partie scalaire qui dépend de l'angle, une partie vectorielle alignée avec l'axe. Et vous venez de le vérifier : q et −q donnent exactement la même attitude.",
+      "Une rotation d'angle θ autour d'un axe unitaire u s'écrit q = [w, x, y, z] = (cos(θ/2), u·sin(θ/2)), toujours de norme 1 : une partie scalaire qui dépend de l'angle, une partie vectorielle alignée avec l'axe. C'est le format scalaire d'abord — exactement l'ordre (qr, qi, qj, qk) qu'xdyn transmet.",
+    takeaway:
+      "w n'est pas un angle : c'est cos(θ/2). Aucune des quatre composantes ne se lit isolément.",
+    details: [
+      "q = (cos(θ/2), u sin(θ/2)), avec ‖u‖ = 1. Si u=(uₓ,uᵧ,u_z), alors q=(cos(θ/2), uₓsin(θ/2), uᵧsin(θ/2), u_zsin(θ/2)) : sa norme au carré vaut cos²(θ/2)+‖u‖²sin²(θ/2)=1. La même rotation s'écrit aussi en matrice 3×3 (v_monde = R·v_corps, colonnes = axes du corps exprimés dans le monde, affichée dans le bac à sable); la matrice homogène 4×4 des moteurs 3D ajoute la translation et encode une pose, pas une attitude seule.",
+      "L'analogie 2D : un complexe unitaire e^(iθ) = cos θ + i sin θ fait tourner le plan de θ. Le quaternion unitaire joue le même rôle en 3D avec θ/2 au lieu de θ, car la rotation s'applique par l'action bilatérale v′ = q ⊗ (0,v) ⊗ q* : chacun des deux facteurs contribue un demi-angle. C'est aussi l'écriture exponentielle q = exp((0,u)θ/2).",
+      "Ici u=(0,0,1) et θ=60°, donc q=(cos 30°,0,0,sin 30°)=(√3/2,0,0,1/2). À θ=180°, q=(0,0,0,1) : w s'annule sans que la rotation disparaisse.",
+    ],
+    pitfalls: [
+      "Lire w, x, y et z comme quatre angles indépendants.",
+      "Utiliser θ à la place de θ/2 dans les fonctions trigonométriques.",
+      "Confondre la matrice de rotation 3×3 (attitude seule) avec la matrice homogène 4×4 (attitude et position).",
+    ],
+    sources: [
+      {
+        label: "NASA TM-74839 — Euler angles, quaternions, and transformation matrices",
+        url: "https://ntrs.nasa.gov/citations/19770024290",
+      },
+      {
+        label: "ROS 2 — Quaternion fundamentals",
+        url: "https://docs.ros.org/en/rolling/Tutorials/Intermediate/Tf2/Quaternion-Fundamentals.html",
+      },
+    ],
+  },
+  {
+    id: "axis-angle",
+    title: "q et −q : une rotation, deux écritures",
+    tryIt:
+      "Cliquez sur « Afficher −q » : les quatre composantes changent de signe et l'attitude du bateau ne bouge pas d'un degré. Les deux écritures décrivent exactement la même rotation.",
+    summary:
+      "Le quaternion couvre chaque rotation deux fois : q et −q donnent la même attitude, car les deux signes s'annulent dans q ⊗ (0,v) ⊗ q*. C'est la double couverture — et la raison pour laquelle comparer deux quaternions composante par composante peut conclure à tort que deux attitudes diffèrent.",
     takeaway:
       "q et −q décrivent la même orientation ; ne comparez jamais deux quaternions composante par composante sans y penser.",
     details: [
-      "q = (cos(θ/2), u sin(θ/2)), avec ‖u‖ = 1. Si u=(uₓ,uᵧ,u_z), alors q=(cos(θ/2), uₓsin(θ/2), uᵧsin(θ/2), u_zsin(θ/2)) : sa norme au carré vaut cos²(θ/2)+‖u‖²sin²(θ/2)=1. Un quaternion d'orientation est toujours unitaire.",
-      "Le demi-angle vient de l’action bilatérale q ⊗ (0, v) ⊗ q*: les deux facteurs quaternion conjugués produisent sur le vecteur la rotation physique d’angle θ. C’est aussi l’écriture exponentielle q=exp((0,u)θ/2).",
+      "Pour q = (cos(θ/2), u sin(θ/2)), l'opposé −q = (cos((2π−θ)/2), −u sin((2π−θ)/2)) représente la rotation de 2π−θ autour de −u : le même mouvement physique, lu dans l'autre sens.",
+      "(−q) ⊗ (0,v) ⊗ (−q)* = q ⊗ (0,v) ⊗ q* : les deux signes se compensent dans l'action bilatérale, quel que soit le vecteur v. Aucune mesure physique ne distingue q de −q.",
       "Ici u=(0,0,1) et θ=60°, donc q=(cos 30°,0,0,sin 30°)=(√3/2,0,0,1/2). Son opposé (−√3/2,0,0,−1/2) produit la même attitude, car les deux signes s’annulent dans q ⊗ (0,v) ⊗ q*.",
     ],
     pitfalls: [
-      "Utiliser θ à la place de θ/2 dans les fonctions trigonométriques.",
       "Comparer q et −q composante par composante au lieu de comparer leur orientation.",
+      "Croire que la forme canonique (w ≥ 0) supprime la double couverture : à w = 0, les deux signes restent possibles.",
     ],
     sources: [
       {
@@ -109,7 +139,7 @@ export const TUTORIAL_SCREENS = [
     takeaway:
       "Le gimbal lock est un défaut des Euler angles, pas du quaternion.",
     details: [
-      "R = R_Z(lacet) R_Y(tangage) R_X(roulis). La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
+      "R = R_Z(lacet) R_Y(tangage) R_X(roulis). La convention intrinsèque Z-Y′-X″ applique le lacet autour de Z, le tangage autour de Y′ déjà tourné, puis le roulis autour de X″. C'est la seule convention d'Euler supportée par xdyn ([psi, theta′, phi″]). À ±90° de tangage, Z et X″ deviennent colinéaires: la décomposition perd un degré de liberté.",
       "Roulis 20°, tangage 90° et lacet 35° est une décomposition valide: les anneaux de lacet et de roulis s’alignent et la matrice ne conserve que leur différence 35°−20°=15°. Pour un affichage déterministe, le laboratoire choisit la représentation canonique équivalente roulis 0°, tangage 90°, lacet 15°.",
       "Plusieurs triplets d’Euler donnent donc la même rotation: c’est une singularité de représentation, pas une disparition du mouvement. À ce point, l'orientation physique existe toujours et le quaternion unitaire la décrit sans singularité interne.",
     ],
@@ -145,6 +175,7 @@ export const TUTORIAL_SCREENS = [
     pitfalls: [
       "Appliquer seulement le passage NED vers ENU et laisser le corps en FRD.",
       "Passer (qr,qi,qj,qk) directement au constructeur Three.js qui attend (x,y,z,w).",
+      "Reconstruire le quaternion reçu dans le mauvais ordre de composantes : un lacet revient alors en roulis, et l'erreur reste invisible tant que l'orientation est proche de l'identité.",
     ],
     sources: [
       {
@@ -163,7 +194,7 @@ export const TUTORIAL_SCREENS = [
     tryIt:
       "Choisissez l'attitude ENU/FLU équivalente au quaternion xdyn [√½, 0, 0, √½]. Chaque mauvaise proposition correspond à une erreur de convention précise : lisez le feedback après chaque essai.",
     summary:
-      "Les propositions [1,0,0,0] et [−1,0,0,0] sont toutes deux correctes — la double couverture, vue à l'étape 2. Chaque distracteur isole une erreur : changement monde omis, changement corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l'ordre Three.js.",
+      "Les propositions [1,0,0,0] et [−1,0,0,0] sont toutes deux correctes — la double couverture, vue à l'étape 3. Chaque distracteur isole une erreur : changement monde omis, changement corps omis, facteurs inversés, ou ordre scalaire xdyn lu comme l'ordre Three.js.",
     takeaway:
       "En cas de doute sur une convention, refaites le produit dans l'ordre annoncé plutôt que de juger à la proximité des composantes.",
     details: [

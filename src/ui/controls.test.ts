@@ -14,6 +14,7 @@ const controlRoot = () => {
     "qw", "qx", "qy", "qz", "norm-indicator", "quaternion-symbolic",
     "axis-x", "axis-y", "axis-z", "axis-angle", "axis-angle-output",
     "roll", "pitch", "yaw", "roll-output", "pitch-output", "yaw-output",
+    "m00", "m01", "m02", "m10", "m11", "m12", "m20", "m21", "m22",
   ]) {
     values.set(id, { value: "" });
   }
@@ -92,5 +93,23 @@ describe("sandbox validation", () => {
     renderControls(controls.root, snapshot);
 
     expect(controls.text("quaternion-symbolic")).toBe("[√½, 0, 0, √½]");
+  });
+
+  test("renders the rotation matrix with body axes as columns", () => {
+    const controls = controlRoot();
+    const snapshot = {
+      enuFlu: [Math.SQRT1_2, 0, 0, Math.SQRT1_2],
+      nedFrd: [1, 0, 0, 0],
+      axisAngle: { axis: [0, 0, 1], angle: Math.PI / 2 },
+      eulerEnu: { roll: 0, pitch: 0, yaw: Math.PI / 2, gimbalLocked: false },
+    } as OrientationSnapshot;
+
+    renderControls(controls.root, snapshot);
+
+    // Lacet +90° : Forward → North, Left → West.
+    expect(controls.text("m00")).toBe("0.000");
+    expect(controls.text("m01")).toBe("-1.000");
+    expect(controls.text("m10")).toBe("1.000");
+    expect(controls.text("m22")).toBe("1.000");
   });
 });

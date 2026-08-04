@@ -161,6 +161,12 @@ export function mountLabApp(root: HTMLElement): void {
   const currentRotationAxis = (): Vec3 =>
     snapshot.axisAngle.angle > 1e-6 ? snapshot.axisAngle.axis : lessonAxis;
 
+  const halfAngleLabel = (): string => {
+    const [w, x, y, z] = snapshot.enuFlu;
+    const half = degreesLabel(snapshot.axisAngle.angle / 2);
+    return `w = cos(${half}) = ${w.toFixed(3)} · ‖(x,y,z)‖ = sin(${half}) = ${Math.hypot(x, y, z).toFixed(3)}`;
+  };
+
   // Attitude du bateau LOTUSim selon la phase : les phases partielles montrent
   // l'attitude (fausse) produite en n'appliquant qu'un seul des deux facteurs —
   // les mêmes erreurs que les distracteurs du défi final.
@@ -177,6 +183,7 @@ export function mountLabApp(root: HTMLElement): void {
 
   const applyCurrentTeachingVisuals = (screen: TutorialScreen, animateComparison = false) => {
     switch (screen.id) {
+      case "anatomy":
       case "axis-angle":
         scene.setRotationAxis(currentRotationAxis());
         break;
@@ -211,6 +218,7 @@ export function mountLabApp(root: HTMLElement): void {
       case "frames":
         renderSnapshot(snapshotFromNed([1, 0, 0, 0]), null, animate);
         break;
+      case "anatomy":
       case "axis-angle":
         renderSnapshot(
           snapshotFromEnu(fromAxisAngle({ axis: [0, 0, 1], angle: Math.PI / 3 })),
@@ -251,18 +259,23 @@ export function mountLabApp(root: HTMLElement): void {
           <p><span>Monde ENU (East–North–Up)</span><strong>X East · Y North · Z Up</strong></p>
           <p><span>Corps FLU (Forward–Left–Up)</span><strong>X Forward · Y Left · Z Up</strong></p>
         </div>`;
-      case "axis-angle": {
-        const [w, x, y, z] = snapshot.enuFlu;
-        const equivalent: Quaternion = showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu;
+      case "anatomy": {
         const thetaDegrees = ((snapshot.axisAngle.angle * 180) / Math.PI).toFixed(1);
-        const displayedAxis = snapshot.axisAngle.angle > 1e-6 ? snapshot.axisAngle.axis : lessonAxis;
         return `<div class="lesson-demo equivalent-card">
-          <div><span>q courant · axe ${axisLabel(displayedAxis)} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
-          <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
+          <div><span>q = [cos(θ/2), u·sin(θ/2)] · axe u ${axisLabel(currentRotationAxis())} · θ <span id="lesson-theta-label">${degreesLabel(snapshot.axisAngle.angle)}</span></span><code id="lesson-current-q">${quaternionLabel(snapshot.enuFlu)}</code></div>
           <label class="range-control" for="lesson-theta">θ
             <input id="lesson-theta" type="range" min="0" max="180" step="0.1" value="${thetaDegrees}" />
             <output id="lesson-theta-output" for="lesson-theta">${degreesLabel(snapshot.axisAngle.angle)}</output>
           </label>
+          <p aria-live="polite" id="lesson-halfangle">${halfAngleLabel()}</p>
+        </div>`;
+      }
+      case "axis-angle": {
+        const [w, x, y, z] = snapshot.enuFlu;
+        const equivalent: Quaternion = showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu;
+        return `<div class="lesson-demo equivalent-card">
+          <div><span>q courant · axe ${axisLabel(currentRotationAxis())} · θ ${degreesLabel(snapshot.axisAngle.angle)}</span><code>${quaternionLabel(snapshot.enuFlu)}</code></div>
+          <button type="button" data-lesson-action="toggle-sign">${showNegative ? "Afficher q" : "Afficher −q"}</button>
           <p aria-live="polite"><span>Représentation équivalente affichée</span><code id="lesson-equivalent-q">${quaternionLabel(equivalent)}</code></p>
         </div>`;
       }
@@ -421,11 +434,8 @@ export function mountLabApp(root: HTMLElement): void {
       if (thetaLabel) thetaLabel.textContent = degreesLabel(snapshot.axisAngle.angle);
       const current = lesson.querySelector<HTMLElement>("#lesson-current-q");
       if (current) current.textContent = quaternionLabel(snapshot.enuFlu);
-      const [w, x, y, z] = snapshot.enuFlu;
-      const equivalentCode = lesson.querySelector<HTMLElement>("#lesson-equivalent-q");
-      if (equivalentCode) {
-        equivalentCode.textContent = quaternionLabel(showNegative ? [-w, -x, -y, -z] : snapshot.enuFlu);
-      }
+      const halfAngle = lesson.querySelector<HTMLElement>("#lesson-halfangle");
+      if (halfAngle) halfAngle.textContent = halfAngleLabel();
     });
     thetaSlider?.addEventListener("change", () => renderLesson());
 

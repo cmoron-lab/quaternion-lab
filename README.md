@@ -21,7 +21,7 @@ bun run preview
 
 Le tutoriel démarre immédiatement. **Explorer librement** masque la leçon sans perdre l'attitude courante; **Reprendre le tutoriel** la réaffiche pendant la même session; **Recommencer depuis le début** la ramène à sa première étape. La caméra du bateau s'orbite à la souris et son bouton de réinitialisation restaure la vue.
 
-Le bac à sable conserve une seule attitude ENU/FLU et synchronise quaternion, angle-axe et angles d'Euler intrinsèques Z-Y′-X″. Les messages signalent les valeurs invalides, la normalisation et le verrouillage de cardan. Les libellés d'axes restent présents dans le texte, en plus des couleurs.
+Le bac à sable conserve une seule attitude ENU/FLU et synchronise quaternion, angle-axe, angles d'Euler intrinsèques Z-Y′-X″ et matrice de rotation 3×3 (colonnes = axes du corps exprimés dans le monde). Les messages signalent les valeurs invalides, la normalisation et le verrouillage de cardan. Les libellés d'axes restent présents dans le texte, en plus des couleurs.
 
 ## Convention mathématique
 

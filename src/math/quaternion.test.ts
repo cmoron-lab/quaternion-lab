@@ -8,6 +8,7 @@ import {
   sameOrientation,
   toAxisAngle,
   toEulerZYX,
+  toRotationMatrix,
 } from "./quaternion";
 
 const closeTuple = (actual: readonly number[], expected: readonly number[]) => {
@@ -106,6 +107,16 @@ describe("scalar-first Hamilton quaternions", () => {
       expect(sameOrientation(fromEulerZYX(extracted), source)).toBe(true);
     });
   }
+
+  test("builds the rotation matrix with body axes as columns", () => {
+    toRotationMatrix([1, 0, 0, 0]).forEach((row, index) => {
+      closeTuple(row, [index === 0 ? 1 : 0, index === 1 ? 1 : 0, index === 2 ? 1 : 0]);
+    });
+    const yaw90 = toRotationMatrix(fromAxisAngle({ axis: [0, 0, 1], angle: Math.PI / 2 }));
+    closeTuple(yaw90[0], [0, -1, 0]);
+    closeTuple(yaw90[1], [1, 0, 0]);
+    closeTuple(yaw90[2], [0, 0, 1]);
+  });
 
   test("treats q and -q as the same orientation", () => {
     const q = canonicalize([0.5, 0.5, 0.5, 0.5]);

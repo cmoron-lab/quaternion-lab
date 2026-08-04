@@ -1,6 +1,7 @@
 import {
   canonicalSign,
   fromAxisAngle,
+  toRotationMatrix,
   type EulerZYX,
   type Quaternion,
   type Vec3,
@@ -174,6 +175,13 @@ export function renderControls(root: ParentNode, snapshot: OrientationSnapshot):
   element<HTMLElement>(root, "quaternion-symbolic").textContent = quaternionLabel(snapshot.enuFlu);
   snapshot.axisAngle.axis.forEach((value, index) => {
     element<HTMLInputElement>(root, axisFields[index]!).value = formatQuaternion(value);
+  });
+
+  toRotationMatrix(snapshot.enuFlu).forEach((row, rowIndex) => {
+    row.forEach((value, columnIndex) => {
+      element<HTMLElement>(root, `m${rowIndex}${columnIndex}`).textContent =
+        formatFixed(value, 3);
+    });
   });
 
   const axisDegrees = formatDegrees(snapshot.axisAngle.angle);

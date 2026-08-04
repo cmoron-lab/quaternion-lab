@@ -109,6 +109,21 @@ export function toEulerZYX(q: Quaternion): EulerZYXResult {
   };
 }
 
+export type Mat3 = readonly [Vec3, Vec3, Vec3];
+
+// v_monde = R · v_corps : chaque colonne de R est l'image d'un vecteur de base
+// du corps, donc un axe du corps exprimé dans le monde.
+export function toRotationMatrix(q: Quaternion): Mat3 {
+  const [fx, fy, fz] = rotateVector(q, [1, 0, 0]);
+  const [lx, ly, lz] = rotateVector(q, [0, 1, 0]);
+  const [ux, uy, uz] = rotateVector(q, [0, 0, 1]);
+  return [
+    [fx, lx, ux],
+    [fy, ly, uy],
+    [fz, lz, uz],
+  ];
+}
+
 export function sameOrientation(
   a: Quaternion,
   b: Quaternion,

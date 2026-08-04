@@ -163,6 +163,11 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .preset-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.4rem; }
 .preset-grid button { font-size: 0.76rem; }
 
+.matrix-table { width: 100%; border-collapse: collapse; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.78rem; }
+.matrix-table th, .matrix-table td { padding: 0.15rem 0.4rem; text-align: right; font-weight: 400; }
+.matrix-table thead th { text-align: right; }
+.matrix-table tbody th { color: #123d4a; font-weight: 700; text-align: left; }
+
 .control-message, .control-note, .control-warning { margin: 0.55rem 0 0; font-size: 0.8rem; line-height: 1.35; }
 .control-message, .control-warning { color: #a32c38; font-weight: 700; }
 .control-note { color: #123d4a; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }

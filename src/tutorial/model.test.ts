@@ -13,9 +13,10 @@ import {
 } from "./model";
 
 describe("tutorial", () => {
-  test("contains five lessons and one final challenge", () => {
+  test("contains six lessons and one final challenge", () => {
     expect(TUTORIAL_SCREENS.map((screen) => screen.id)).toEqual([
       "frames",
+      "anatomy",
       "axis-angle",
       "composition",
       "gimbal-lock",
