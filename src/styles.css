@@ -253,6 +253,11 @@ output { text-align: right; font-size: 0.75rem; font-weight: 400; }
 .anatomy-card p { display: grid; gap: 0.25rem; margin: 0; }
 .anatomy-card span { font-size: 0.72rem; font-weight: 700; }
 
+.anatomy-card__circle { display: flex; flex-wrap: wrap; gap: 0.7rem; align-items: center; }
+.anatomy-card__circle > div:last-child { display: grid; gap: 0.35rem; min-width: 0; flex: 1 1 12rem; }
+.anatomy-circle { display: block; background: #fff; border: 1px solid #9ac9cf; }
+.anatomy-circle text { font: 9px ui-monospace, SFMono-Regular, Menlo, monospace; fill: #123d4a; }
+
 .equivalent-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;

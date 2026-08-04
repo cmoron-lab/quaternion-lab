@@ -167,6 +167,33 @@ export function mountLabApp(root: HTMLElement): void {
     return `w = cos(${half}) = ${w.toFixed(3)} · ‖(x,y,z)‖ = sin(${half}) = ${Math.hypot(x, y, z).toFixed(3)}`;
   };
 
+  const pythagoreLabel = (): string => {
+    const [w, x, y, z] = snapshot.enuFlu;
+    const vectorSquared = x * x + y * y + z * z;
+    return `w² + ‖(x,y,z)‖² = ${(w * w).toFixed(3)} + ${vectorSquared.toFixed(3)} = ${(w * w + vectorSquared).toFixed(3)}`;
+  };
+
+  // Le point (cos θ/2, sin θ/2) sur le cercle unité; θ ∈ [0°, 180°] le confine
+  // au quart supérieur droit.
+  const circleWidgetMarkup = (): string => {
+    const CENTER = 66;
+    const RADIUS = 48;
+    const half = snapshot.axisAngle.angle / 2;
+    const x = (CENTER + RADIUS * Math.cos(half)).toFixed(1);
+    const y = (CENTER - RADIUS * Math.sin(half)).toFixed(1);
+    return `<svg class="anatomy-circle" viewBox="0 0 132 132" width="132" height="132" role="img" aria-label="Point (cos θ/2, sin θ/2) sur le cercle unité">
+      <line x1="10" y1="66" x2="126" y2="66" stroke="#9ac9cf" stroke-width="1" />
+      <line x1="66" y1="6" x2="66" y2="122" stroke="#9ac9cf" stroke-width="1" />
+      <circle cx="66" cy="66" r="48" fill="none" stroke="#123d4a" stroke-width="1.5" />
+      <line x1="66" y1="66" x2="${x}" y2="${y}" stroke="#082733" stroke-width="1" />
+      <line x1="${x}" y1="${y}" x2="${x}" y2="66" stroke="#086c7a" stroke-width="1" stroke-dasharray="3 3" />
+      <line x1="${x}" y1="${y}" x2="66" y2="${y}" stroke="#086c7a" stroke-width="1" stroke-dasharray="3 3" />
+      <circle cx="${x}" cy="${y}" r="4" fill="#e9a23b" stroke="#082733" />
+      <text x="126" y="78" text-anchor="end">w</text>
+      <text x="62" y="12" text-anchor="end">‖xyz‖</text>
+    </svg>`;
+  };
+
   // Attitude du bateau LOTUSim selon la phase : les phases partielles montrent
   // l'attitude (fausse) produite en n'appliquant qu'un seul des deux facteurs —
   // les mêmes erreurs que les distracteurs du défi final.
@@ -267,7 +294,13 @@ export function mountLabApp(root: HTMLElement): void {
             <input id="lesson-theta" type="range" min="0" max="180" step="0.1" value="${thetaDegrees}" />
             <output id="lesson-theta-output" for="lesson-theta">${degreesLabel(snapshot.axisAngle.angle)}</output>
           </label>
-          <p aria-live="polite" id="lesson-halfangle">${halfAngleLabel()}</p>
+          <div class="anatomy-card__circle">
+            <div id="lesson-circle">${circleWidgetMarkup()}</div>
+            <div>
+              <p aria-live="polite" id="lesson-halfangle">${halfAngleLabel()}</p>
+              <p id="lesson-pythagore">${pythagoreLabel()}</p>
+            </div>
+          </div>
         </div>`;
       }
       case "axis-angle": {
@@ -436,6 +469,10 @@ export function mountLabApp(root: HTMLElement): void {
       if (current) current.textContent = quaternionLabel(snapshot.enuFlu);
       const halfAngle = lesson.querySelector<HTMLElement>("#lesson-halfangle");
       if (halfAngle) halfAngle.textContent = halfAngleLabel();
+      const pythagore = lesson.querySelector<HTMLElement>("#lesson-pythagore");
+      if (pythagore) pythagore.textContent = pythagoreLabel();
+      const circle = lesson.querySelector<HTMLElement>("#lesson-circle");
+      if (circle) circle.innerHTML = circleWidgetMarkup();
     });
     thetaSlider?.addEventListener("change", () => renderLesson());
 
